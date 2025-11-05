@@ -1618,7 +1618,28 @@ days vs baseline.</li>
 <ul>
 <li>Within-station effects with station/date fixed effects:</li>
 </ul>
-<p>[ (_{s,d}) _1 _d + _2 *d + _3 *{s,d} + + + _s + _d]</p>
+<p><strong>Spec A — with date fixed effects (preferred):</strong></p>
+<p><span class="math display">\[
+\log\!\big(\text{entries}_{s,d}\big)
+= \beta_{1}\,\text{heatwave}_{d}
++ \beta_{2}\,\text{precip}_{d}
++ \beta_{3}\,\text{event}_{s,d}
++ \alpha_{s}
++ \gamma_{d}
++ \varepsilon_{s,d}.
+\]</span></p>
+<p><strong>Spec B — without date fixed effects (lighter; includes
+DOW/month):</strong></p>
+<p><span class="math display">\[
+\log\!\big(\text{entries}_{s,d}\big)
+= \beta_{1}\,\text{heatwave}_{d}
++ \beta_{2}\,\text{precip}_{d}
++ \beta_{3}\,\text{event}_{s,d}
++ \delta_{\text{DOW}(d)}
++ \mu_{\text{month}(d)}
++ \alpha_{s}
++ \varepsilon_{s,d}.
+\]</span></p>
 <ul>
 <li>Hourly event-window models for selected venues/routes.</li>
 <li><strong>Sensitivity:</strong> alternative thresholds; pandemic

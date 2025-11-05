@@ -99,9 +99,30 @@ Transit demand in NYC shifts with **extreme weather** (heat waves, heavy rain/sn
 
 * Within-station effects with station/date fixed effects:
 
-[
-\log(\text{entries}_{s,d}) \sim \beta_1 \text{heatwave}_d + \beta_2 \text{precip}*d + \beta_3 \text{event}*{s,d} + \text{DOW} + \text{Month} + \alpha_s + \gamma_d
-]
+**Spec A — with date fixed effects (preferred):**
+
+\[
+\log\!\big(\text{entries}_{s,d}\big)
+= \beta_{1}\,\text{heatwave}_{d}
++ \beta_{2}\,\text{precip}_{d}
++ \beta_{3}\,\text{event}_{s,d}
++ \alpha_{s}
++ \gamma_{d}
++ \varepsilon_{s,d}.
+\]
+
+**Spec B — without date fixed effects (lighter; includes DOW/month):**
+
+\[
+\log\!\big(\text{entries}_{s,d}\big)
+= \beta_{1}\,\text{heatwave}_{d}
++ \beta_{2}\,\text{precip}_{d}
++ \beta_{3}\,\text{event}_{s,d}
++ \delta_{\text{DOW}(d)}
++ \mu_{\text{month}(d)}
++ \alpha_{s}
++ \varepsilon_{s,d}.
+\]
 
 * Hourly event-window models for selected venues/routes.
 * **Sensitivity:** alternative thresholds; pandemic indicators / exclusions.
