@@ -1,0 +1,178 @@
+
+
+---
+title: "Proposal — Subway ridership × weather & events (NYC)"
+author: TEAM MEMBER 1(Donovan, William M) UNI(wd2328); TEAM MEMBER 2(Qin, Hantang) (Liu, Yongyan) UNI(yl6107); TEAM MEMBER 3(Wang, Yijun) UNI(yw4664); TEAM MEMBER 4 UNI(hq2229); TEAM MEMBER 5 (Hu, Heng) UNI(hh2648)
+date: "`r format(Sys.Date())`"
+output:
+  html_document:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    number_sections: false
+---
+
+<!-- ===== Inline styles (custom colors) ===== -->
+
+<style>
+/* Title at the very top */
+h1.title.toc-ignore { color: #2C7BE5; }          /* blue */
+
+/* Author + date under the title */
+h4.author, h4.date {
+  color: #444444;                                 /* charcoal */
+  font-weight: 600;
+}
+
+/* Body headings */
+h1, h2, h3 { color: #0FB9B1; }                    /* teal */
+
+/* Links */
+a { color: #E67E22; }                             /* orange */
+a:hover { color: #CF711F; }
+
+/* Quarto-style selectors for future-proofing (harmless in Rmd) */
+.quarto-title h1.title { color: #2C7BE5; }
+.quarto-title .quarto-title-author,
+.quarto-title .quarto-title-date { color: #444444; }
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+## Team & tentative title
+
+* **Team:** TEAM MEMBER A (UNI1), TEAM MEMBER B (UNI2), TEAM MEMBER C (UNI3), TEAM MEMBER D (UNI4), TEAM MEMBER E (UNI5)
+* **Tentative title:** *Weather, Storms, and Big Events: Station-Level Impacts on NYC Subway Ridership*
+
+## Motivation
+
+Transit demand in NYC shifts with **extreme weather** (heat waves, heavy rain/snow) and **large events** (parades, holiday gatherings, Times Square). We will quantify **station-level** ridership changes tied to weather and permitted events across 2020–2025. Findings can inform service planning, resilience, and rider communications.
+
+## Initial questions
+
+1. How do **heat waves** and **storms** change **station-day** ridership, and which stations are most affected?
+2. Do **big events** create detectable **station-hour** spikes near venues/routes?
+3. Are effects heterogeneous by **borough**, **station type** (transfer hubs vs locals), and **weekday/weekend**?
+
+(We’ll prioritize Q1–Q2; time permitting, we’ll explore clustering of station responses.)
+
+## Data sources (final)
+
+**Ridership (core, station-level hourly):**
+
+* *MTA Subway Hourly Ridership: 2020–2024* — **dataset ID:** `wujg-7c2s`
+* *MTA Subway Hourly Ridership: Beginning 2025–*** — **dataset ID:** `5wq4-mkjj`
+
+**Station geocoding:**
+
+* *MTA station complexes with coordinates* (Complex IDs align with hourly ridership)
+
+**Weather (daily, NYC):**
+
+* *NOAA GHCN-Daily — Central Park station* (USW00094728): daily max temp, precipitation, snowfall
+
+**Events (date & location):**
+
+* *NYC Permitted Event Information* — historical + current permits (parades, street fairs, etc.)
+
+> We **will not** use the deprecated “MTA Daily Ridership 2020–2025” totals (systemwide only; no station detail).
+
+## Planned analyses & visualizations
+
+**Data wrangling**
+
+* Pull hourly ridership via Socrata; build **station-day** aggregates (retain **station-hour** for event windows).
+* Join **GHCN-Daily**; create indicators:
+
+  * `heatwave`: max temp ≥ 90°F for ≥ 3 consecutive days (plus sensitivity checks)
+  * `storm`: daily precipitation ≥ 1 inch (alternative thresholds in sensitivity)
+* Ingest **Permitted Events**; spatially join to **nearest station complex** (e.g., within 600–800 m) and flag `event_day` / hourly windows.
+
+**EDA**
+
+* Calendar heatmaps for marquee stations; small-multiple time series; borough-faceted plots.
+* Choropleths of % change in station-day entries on heat/storm/event days vs baseline.
+
+**Modeling (fixed effects)**
+
+* Within-station effects with station/date fixed effects:
+
+[
+\log(\text{entries}_{s,d}) \sim \beta_1 \text{heatwave}_d + \beta_2 \text{precip}*d + \beta_3 \text{event}*{s,d} + \text{DOW} + \text{Month} + \alpha_s + \gamma_d
+]
+
+* Hourly event-window models for selected venues/routes.
+* **Sensitivity:** alternative thresholds; pandemic indicators / exclusions.
+
+**Stretch goals (time permitting)**
+
+* Cluster stations by response patterns (e.g., k-means / hierarchical).
+* Simple forecasts (ARIMA/Prophet) for a few high-profile stations.
+
+## Anticipated coding challenges
+
+* Socrata API pagination and rate limits on large hourly tables.
+* Aligning Complex IDs across ridership and station geometry.
+* Defining clean event windows and handling overlapping permits.
+* Managing regime changes during pandemic recovery (2020–2022).
+
+## Deliverables
+
+* **GitHub repo (public):** scripts for import/cleaning/EDA/modeling, saved figures, `README`, Quarto site.
+* **Website (GH Pages):** landing page + results; **full report** as a page; embedded **≤ 2-minute** screencast.
+* **Report:** standalone document covering motivation, data, EDA, methods, results, and limitations.
+
+## Timeline (aligned to course dates)
+
+* **By Nov 7, 1:00 pm (proposal):** finalize team & scope (this document), create repo & push.
+* **Nov 8–12:** implement initial data pulls; produce first plots; define heat/storm/event flags.
+* **Nov 10–14 (project review):** meet with teaching team; bring a cleaned one-week sample, 2–3 plots, and a skeleton model.
+* **Nov 15–30:** full EDA, fixed-effects models, sensitivity checks; draft full report.
+* **Dec 1–6 (11:59 pm):** polish report & website; record **≤ 2-minute** screencast; submit links.
+* **Dec 11:** in-class discussion.
+
+## Roles
+
+* **Data wrangling & API:** NAME
+* **EDA & visualization:** NAME
+* **Modeling & diagnostics:** NAME
+* **Website & screencast:** NAME
+* **PM/QA (repo hygiene, PR reviews):** NAME
+
+## (Optional) minimal feasibility check — commented code
+
+> Uncomment and adapt if you want a tiny smoke test before the review meeting.
+> Requires packages: `tidyverse`, `httr`, `jsonlite`, `sf`, `lubridate`.
+
+```{r, eval=FALSE, echo=TRUE}
+
+base_url <- "https://data.ny.gov/resource/wujg-7c2s.json"
+q <- list(
+  "$select" = "complex_id, complex, date, hour_beginning, entries",
+  "$where"  = "date between '2024-07-01T00:00:00' and '2024-07-07T23:59:59' AND complex_id in ('R11','R14')",
+  "$limit"  = 50000
+)
+rid_raw <- jsonlite::fromJSON(
+  httr::content(httr::GET(base_url, query = q), as = "text", encoding = "UTF-8")
+)
+rid <- rid_raw %>%
+  dplyr::mutate(date = lubridate::as_date(date), entries = as.numeric(entries)) %>%
+  dplyr::group_by(complex_id, complex, date) %>%
+  dplyr::summarize(entries_day = sum(entries, na.rm = TRUE), .groups = "drop")
+
+
+```
+
+## References (to be linked in your website/report)
+
+* MTA Subway Hourly Ridership (2020–2024), dataset ID `wujg-7c2s`
+* MTA Subway Hourly Ridership (Beginning 2025– ), dataset ID `5wq4-mkjj`
+* NOAA GHCN-Daily — Central Park (USW00094728)
+* NYC Permitted Event Information (historical/current)
+* MTA station complexes (geometry/coordinates)
+
+```
+::contentReference[oaicite:0]{index=0}
+```
