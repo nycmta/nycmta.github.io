@@ -5,3 +5,4 @@
 
 # Download scripts
 data/download_*.R
+data/derived/*.csv
