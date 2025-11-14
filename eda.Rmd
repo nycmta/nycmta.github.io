@@ -50,12 +50,12 @@ panel_station_day_df =
   mutate(day_ridership_system = sum(entries_day),
          year = year(date))
 
-# Calculate baseline system ridership using mean
+# Calculate baseline system ridership using median
 baseline_system_day = 
   panel_station_day_df |>
   filter(is_holiday == "No") |>
   group_by(year, month, dow) |>
-  summarise(baseline_system_day = mean(day_ridership_system, na.rm = TRUE), .groups = "drop")
+  summarise(baseline_system_day = median(day_ridership_system, na.rm = TRUE), .groups = "drop")
 
 # Join baseline system ridership with data
 panel_station_day_df =
