@@ -392,7 +392,7 @@ p_dow_riders &lt;- station_day_aug %&gt;%
 (p_riders_over_time + p_dow_riders) +
   plot_layout(widths = c(3, 1)) +
   plot_annotation(title = &quot;System Ridership: The Weekly Pulse&quot;)</code></pre>
-<p><img src="model_files/figure-html/baseline_plots-1.png" width="960" /></p>
+<p><img src="images/model-baseline_plots-1.png" width="960" /></p>
 <hr />
 </div>
 <div id="story-1-the-goldilocks-zone" class="section level2">
@@ -434,7 +434,7 @@ p_snow &lt;- station_day_aug %&gt;%
   labs(title = &quot;Snow Impact&quot;, x = &quot;Snow (in, log)&quot;, y = NULL)
 
 p_temp / (p_prcp + p_snow)</code></pre>
-<p><img src="model_files/figure-html/weather_scatter-1.png" width="960" /></p>
+<p><img src="images/model-weather_scatter-1.png" width="960" /></p>
 <p>We often assume a linear relationship between weather and behavior,
 but human comfort is non-linear. We can explore this with a
 <strong>Generalized Additive Model (GAM)</strong>, which allows for
@@ -520,7 +520,7 @@ ggplot(pred_grid, aes(x = tmax, y = prcp, fill = pct_change)) +
     panel.grid = element_blank(),
     legend.position = &quot;right&quot;
   )</code></pre>
-<p><img src="model_files/figure-html/story1_gam-1.png" width="960" /></p>
+<p><img src="images/model-story1_gam-1.png" width="960" /></p>
 <p><strong>Finding:</strong> This heatmap reveals how temperature and
 precipitation <strong>jointly</strong> affect ridership relative to the
 average. The red “sweet spot” sits between <strong>60-75°F with little
@@ -673,7 +673,7 @@ ggplot() +
     legend.position = &quot;bottom&quot;,
     strip.text = element_text(face = &quot;bold&quot;, size = 12)
   )</code></pre>
-<p><img src="model_files/figure-html/story2_events-1.png" width="960" /></p>
+<p><img src="images/model-story2_events-1.png" width="960" /></p>
 <p><strong>Finding:</strong> The “Blast Radius” is real and
 geographically distinct.</p>
 <ul>
@@ -825,7 +825,7 @@ p_rain &lt;- ggplot(rain_by_hour, aes(x = hour, y = median_change)) +
   )
 
 p_profiles</code></pre>
-<p><img src="model_files/figure-html/story3_clustering-1.png" width="960" /></p>
+<p><img src="images/model-story3_clustering-1.png" width="960" /></p>
 <p><strong>Finding:</strong> K-means clustering reveals two clear
 station archetypes based on <strong>commute flow direction</strong>:</p>
 <ul>
@@ -876,7 +876,7 @@ p_map &lt;- ggplot() +
   )
 
 p_map</code></pre>
-<p><img src="model_files/figure-html/story3_map-1.png" width="960" /></p>
+<p><img src="images/model-story3_map-1.png" width="960" /></p>
 <p><strong>Geographic Distribution:</strong> The map confirms our
 interpretation of commute flow. Commercial stations (blue) dominate
 Midtown and Lower Manhattan—Grand Central, Bryant Park, Rockefeller
@@ -905,7 +905,7 @@ throughout the day. This analysis reveals important patterns about when
 commuters are most likely to change their behavior in response to
 weather.</p>
 <pre class="r"><code>p_rain</code></pre>
-<p><img src="model_files/figure-html/story4_rain_hour-1.png" width="960" /></p>
+<p><img src="images/model-story4_rain_hour-1.png" width="960" /></p>
 <p><strong>Finding:</strong> The rain sensitivity by hour plot shows
 that subway ridership drops most sharply during the <strong>morning
 commute hours (7-9 AM)</strong>, with declines of 20-30%. This is likely

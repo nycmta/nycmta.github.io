@@ -1,16 +1,25 @@
 ---
-title: "Data"
+title: "Data & Methods"
 output:
   html_document:
     toc: true
     toc_float: true
     code_folding: hide
+params:
+  heat_threshold_f: 90
+  heat_consec_days: 3
+  storm_threshold_in: 1
+  event_radius_m: 800
+  require_hour_coverage: 20
+  write_outputs: false
+  outputs_dir: "data/derived"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE, message = FALSE, warning = FALSE,
-  fig.width = 10, fig.height = 6
+  fig.width = 10, fig.height = 6,
+  fig.path = "images/data-"
 )
 
 suppressPackageStartupMessages({
@@ -18,8 +27,12 @@ suppressPackageStartupMessages({
   library(lubridate)
   library(scales)
   library(patchwork)
-  library(leaflet)
   library(sf)
+  library(arrow)
+  library(janitor)
+  library(vroom)
+  library(timeDate)
+  library(slider)
 })
 
 theme_set(theme_minimal() +
@@ -29,9 +42,11 @@ theme_set(theme_minimal() +
   ))
 ```
 
-We acquired four datasets for analyzing weather and event impacts on Manhattan subway ridership (2024-2025). Each presented unique technical challenges that required creative solutions.
+We acquired four datasets for analyzing weather and event impacts on Manhattan subway ridership (2024-2025). This page documents both our data sources and the wrangling pipeline that transforms raw data into analysis-ready panels.
 
 ---
+
+# Part 1: Data Sources
 
 ## MTA Subway Ridership
 
@@ -187,57 +202,7 @@ p_ts / p_season
 
 ---
 
-## Event Geocoding & Station Matching
-
-A critical component of our analysis was linking textual event data to physical subway stations. The *NYC Permitted Event Information* dataset provides event locations as text strings (e.g., "5 AVENUE between 15 STREET and 16 STREET") but lacks geospatial coordinates.
-
-**Methodology:**
-
-1.  **Filtering**: We first isolated "Large Events" (Parades, Street Fairs) in Manhattan.
-2.  **Geocoding**: We used the `tidygeocoder` package to convert text addresses into Latitude/Longitude coordinates.
-    *   Primary Service: ArcGIS (high accuracy for NYC street intersections).
-    *   Fallback Service: OpenStreetMap (OSM) for failed queries.
-3.  **Spatial Matching**: We performed a nearest-neighbor spatial join using the `sf` package.
-    *   For each geocoded event, we identified the nearest subway station complex.
-    *   **Threshold:** Events were only linked if they occurred within **800 meters (approx. 0.5 miles)** of a station.
-
-**Code Implementation:**
-
-```{r geocode_demo, eval=FALSE}
-# Pseudocode of our spatial matching logic
-library(tidygeocoder)
-library(sf)
-
-# 1. Geocode event locations
-events_geocoded <- events %>%
-  geocode(address = event_location, method = "arcgis")
-
-# 2. Convert to Simple Features (sf) objects
-events_sf <- st_as_sf(events_geocoded, coords = c("long", "lat"), crs = 4326)
-stations_sf <- st_as_sf(stations, coords = c("longitude", "latitude"), crs = 4326)
-
-# 3. Find nearest station within 800m
-nearest_indices <- st_nearest_feature(events_sf, stations_sf)
-distances <- st_distance(events_sf, stations_sf[nearest_indices,], by_element = TRUE)
-
-# 4. Filter and Join
-events_linked <- events_sf %>%
-  mutate(
-    nearest_station_id = stations_sf$station_complex_id[nearest_indices],
-    distance_meters = as.numeric(distances)
-  ) %>%
-  filter(distance_meters <= 800)
-```
-
-This process allowed us to move from a city-wide list of events to a precise, station-specific "Event Calendar," enabling the localized "Blast Radius" analysis.
-
-### Data Wrangling & Compression
-
-> **See the Code:** For the complete, step-by-step R code used to geocode events and spatially join them to stations, please visit our detailed [**Data Wrangling Log**](data_wrangling.html).
-
----
-
-## Permitted Events Analysis
+## Permitted Events
 
 The NYC Permitted Event Information - Historical dataset (bkfu-528j) contains comprehensive event records but includes hundreds of thousands of small-scale activities (youth sports, film shoots, farmers markets) unlikely to significantly impact subway ridership.
 
@@ -385,9 +350,291 @@ ggplot() +
   )
 ```
 
+**Download scripts:** [`download_full_ridership_monthly.R`](data/download_full_ridership_monthly.R), [`download_historical_events_monthly.R`](data/download_historical_events_monthly.R), [`download_noaa_weather.R`](data/download_noaa_weather.R)
+
 ---
 
-## Summary
+# Part 2: Data Wrangling Pipeline
+
+This section documents the complete data wrangling process that transforms our raw datasets into analysis-ready panels. The goal is to create a robust foundation for examining the interplay between MTA subway ridership, weather conditions, and major NYC events.
+
+## Raw Data Ingestion
+
+We begin by loading the raw datasets and performing initial cleaning: standardizing column names, parsing date/time stamps, and filtering to Manhattan for the 2024-2025 study period.
+
+```{r wrangle_ingest}
+path_rid_2024 <- "data/mta_ridership_full/ridership_2024_manhattan.csv"
+path_rid_2025 <- "data/mta_ridership_full/ridership_2025_manhattan.csv"
+path_weather <- "data/weather/central_park_weather_wide.csv"
+path_events <- "data/events/nyc_large_events_2024_2025.csv"
+path_stations <- "data/stations/mta_station_complexes.csv"
+
+rid24 <- vroom::vroom(path_rid_2024, show_col_types = FALSE)
+rid25 <- vroom::vroom(path_rid_2025, show_col_types = FALSE)
+weather_raw <- readr::read_csv(path_weather, show_col_types = FALSE)
+events_raw <- vroom::vroom(path_events, show_col_types = FALSE)
+stations_raw <- readr::read_csv(path_stations, show_col_types = FALSE)
+
+rid <- bind_rows(rid24, rid25) |>
+  clean_names() |>
+  mutate(
+    transit_timestamp = ymd_hms(transit_timestamp, quiet = TRUE),
+    date = as_date(transit_timestamp),
+    hour = hour(transit_timestamp)
+  ) |>
+  select(station_complex_id, station_complex, borough, transit_timestamp, date, hour, total_ridership)
+
+weather_clean <- weather_raw |>
+  clean_names() |>
+  mutate(
+    date = as_date(date),
+    tmax = as.numeric(tmax),
+    prcp = as.numeric(prcp),
+    snow = as.numeric(snow)
+  ) |>
+  select(date, tmax, prcp, snow) |>
+  arrange(date)
+
+events_clean <- events_raw |>
+  clean_names() |>
+  mutate(
+    start_dt = ymd_hms(start_date_time, quiet = TRUE),
+    end_dt = ymd_hms(end_date_time, quiet = TRUE),
+    event_borough = str_to_lower(event_borough)
+  ) |>
+  filter(!is.na(start_dt), !is.na(end_dt), end_dt >= start_dt)
+
+stations_clean <- stations_raw |>
+  clean_names() |>
+  filter(str_to_lower(borough) == "manhattan", !is.na(latitude), !is.na(longitude))
+```
+
+## Station-Hour Panel Construction
+
+The most granular unit of our analysis is the station-hour. We build the primary `panel_station_hour` dataset and calculate `hours_present` per station-day to identify potential missing data.
+
+```{r wrangle_station_hour}
+panel_station_hour <- rid |>
+  select(station_complex_id, station_complex, date, hour, total_ridership) |>
+  arrange(station_complex_id, date, hour)
+
+hour_cov <- panel_station_hour |>
+  group_by(station_complex_id, date) |>
+  summarize(hours_present = n_distinct(hour), .groups = "drop")
+```
+
+## Station-Day Aggregation
+
+For analyses focusing on daily impacts (e.g., heatwaves), we aggregate to `panel_station_day` by summing total ridership for each station on each day.
+
+```{r wrangle_station_day}
+panel_station_day <- panel_station_hour |>
+  group_by(station_complex_id, station_complex, date) |>
+  summarize(
+    entries_day = sum(total_ridership, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  left_join(hour_cov, by = c("station_complex_id", "date")) |>
+  mutate(hours_present = replace_na(hours_present, 0L))
+```
+
+## Weather Feature Engineering
+
+We integrate daily weather observations and engineer two key features:
+
+- **`heatwave`**: Binary indicator for periods with max temperature ≥ 90°F for consecutive days
+- **`storm`**: Binary indicator for significant precipitation events (≥ 1 inch)
+
+```{r wrangle_weather_features}
+panel_station_day <- panel_station_day |>
+  left_join(weather_clean, by = "date") |>
+  arrange(station_complex_id, date) |>
+  group_by(station_complex_id) |>
+  mutate(
+    heat_day = if_else(!is.na(tmax) & tmax >= params$heat_threshold_f, 1L, 0L),
+    heat_roll = slide_int(heat_day, sum, .before = params$heat_consec_days - 1, .complete = TRUE),
+    heatwave = if_else(!is.na(heat_roll) & heat_roll >= params$heat_consec_days, 1L, 0L),
+    storm = if_else(!is.na(prcp) & prcp >= params$storm_threshold_in, 1L, 0L),
+    weather_missing = as.integer(is.na(tmax) | is.na(prcp))
+  ) |>
+  ungroup()
+```
+
+## Event Geocoding & Spatial Matching
+
+This critical step links textual event data to subway stations:
+
+1. **Filter** to large-scale Manhattan events (parades, races, festivals)
+2. **Geocode** text addresses to coordinates using ArcGIS/OSM
+3. **Spatial join** events to nearest station within 800m radius
+4. **Flag** affected station-hours and station-days
+
+```{r wrangle_events, message=FALSE}
+event_radius_m <- params$event_radius_m
+
+# Filter to Manhattan focus events
+events_manhattan <- events_clean |>
+  filter(is.na(event_borough) | str_detect(event_borough, "manhattan"))
+
+focus_types <- c("parade", "athletic", "race", "tour", "street", "block", "festival", "fair")
+events_focus <- events_manhattan |>
+  filter(!is.na(event_type)) |>
+  filter(purrr::reduce(focus_types, \(acc, key) acc | str_detect(str_to_lower(event_type), key), .init = FALSE)) |>
+  distinct(event_id, .keep_all = TRUE) |>
+  mutate(event_id = as.character(event_id))
+
+# Load geocode cache
+cache_path <- "data/events/nyc_large_events_geocoded.csv"
+if (file.exists(cache_path)) {
+  geo_cache <- readr::read_csv(
+    cache_path,
+    col_types = cols(.default = col_guess(), event_id = col_character()),
+    show_col_types = FALSE
+  )
+} else {
+  geo_cache <- tibble(event_id = character(), lon = numeric(), lat = numeric())
+}
+
+# Join with geocoded coordinates
+events_focus_geo <- events_focus |>
+  left_join(geo_cache, by = "event_id")
+
+evt_geo_ok <- events_focus_geo |>
+  filter(!is.na(lon), !is.na(lat)) |>
+  mutate(
+    start_hr = floor_date(start_dt, "hour"),
+    end_hr = ceiling_date(end_dt, "hour")
+  )
+
+# Spatial matching to stations
+if (nrow(evt_geo_ok) == 0) {
+  events_station_hour <- tibble(
+    station_complex_id = character(),
+    date = as.Date(character()),
+    hour = integer(),
+    event_hour = integer()
+  )
+} else {
+  stn_sf <- st_as_sf(stations_clean, coords = c("longitude", "latitude"), crs = 4326) |>
+    st_transform(2263)
+  evt_sf <- st_as_sf(evt_geo_ok, coords = c("lon", "lat"), crs = 4326) |>
+    st_transform(2263)
+
+  near_idx <- st_nearest_feature(evt_sf, stn_sf)
+  dist_ft <- st_distance(evt_sf, stn_sf[near_idx, ], by_element = TRUE)
+  dist_m <- as.numeric(dist_ft) * 0.3048
+
+  evt_joined <- evt_geo_ok |>
+    mutate(
+      station_complex_id = stn_sf$station_complex_id[near_idx],
+      dist_m = dist_m
+    ) |>
+    filter(dist_m <= event_radius_m) |>
+    select(event_id, station_complex_id, start_hr, end_hr, dist_m)
+
+  events_station_hour <- purrr::map_dfr(seq_len(nrow(evt_joined)), function(i) {
+    tibble(
+      station_complex_id = evt_joined$station_complex_id[i],
+      hour_ts = seq(evt_joined$start_hr[i], evt_joined$end_hr[i], by = "1 hour")
+    )
+  }) |>
+    mutate(date = as_date(hour_ts), hour = hour(hour_ts), event_hour = 1L) |>
+    distinct(station_complex_id, date, hour, .keep_all = TRUE) |>
+    select(station_complex_id, date, hour, event_hour)
+}
+
+# Join events to panels
+panel_station_hour <- panel_station_hour |>
+  left_join(events_station_hour, by = c("station_complex_id", "date", "hour")) |>
+  mutate(event_hour = if_else(is.na(event_hour), 0L, event_hour))
+
+event_day_by_station <- panel_station_hour |>
+  group_by(station_complex_id, date) |>
+  summarize(event_day = as.integer(any(event_hour == 1L)), .groups = "drop")
+
+panel_station_day <- panel_station_day |>
+  left_join(event_day_by_station, by = c("station_complex_id", "date")) |>
+  mutate(event_day = if_else(is.na(event_day), 0L, event_day))
+```
+
+## Holiday Flags
+
+We flag US federal holidays using the `timeDate` package, as ridership patterns on holidays often mimic Sunday schedules.
+
+```{r wrangle_holidays}
+holidays <- tibble(
+  date = as.Date(holidayNYSE(2024:2025)),
+  is_holiday = "Yes"
+)
+
+panel_station_day <- panel_station_day |>
+  left_join(holidays, by = "date") |>
+  mutate(
+    is_holiday = case_match(
+      is_holiday,
+      NA ~ "No",
+      "Yes" ~ "Yes"
+    )
+  )
+```
+
+## Baseline Calculation
+
+To calculate percent change in ridership, we define the baseline as the **median ridership** for each station by day-of-week and month, accounting for weekly and seasonal patterns.
+
+```{r wrangle_baseline}
+panel_station_day <- panel_station_day |>
+  mutate(
+    dow = wday(date, label = TRUE, week_start = 1),
+    month = month(date)
+  )
+
+baseline_sd <- panel_station_day |>
+  group_by(station_complex_id, dow, month) |>
+  summarize(baseline_sd = median(entries_day, na.rm = TRUE), .groups = "drop")
+
+panel_station_day <- panel_station_day |>
+  left_join(baseline_sd, by = c("station_complex_id", "dow", "month")) |>
+  mutate(
+    pct_change = log((entries_day + 1) / (baseline_sd + 1))
+  )
+
+baseline_sh <- panel_station_hour |>
+  mutate(
+    dow = wday(date, label = TRUE, week_start = 1),
+    month = month(date)
+  ) |>
+  group_by(station_complex_id, dow, month, hour) |>
+  summarize(baseline_sh = median(total_ridership, na.rm = TRUE), .groups = "drop")
+
+panel_station_hour <- panel_station_hour |>
+  mutate(
+    dow = wday(date, label = TRUE, week_start = 1),
+    month = month(date)
+  ) |>
+  left_join(baseline_sh, by = c("station_complex_id", "dow", "month", "hour")) |>
+  mutate(
+    hourly_pct_change = log((total_ridership + 1) / (baseline_sh + 1))
+  )
+```
+
+## Output Summary
+
+```{r wrangle_summary}
+cat("Panel Station Day:", nrow(panel_station_day), "rows\n")
+cat("Panel Station Hour:", nrow(panel_station_hour), "rows\n")
+cat("Stations:", n_distinct(panel_station_day$station_complex_id), "\n")
+cat("Date range:", as.character(min(panel_station_day$date)), "to", as.character(max(panel_station_day$date)), "\n")
+cat("Heatwave days:", sum(panel_station_day$heatwave == 1, na.rm = TRUE), "\n")
+cat("Storm days:", sum(panel_station_day$storm == 1, na.rm = TRUE), "\n")
+cat("Event-affected station-days:", sum(panel_station_day$event_day == 1, na.rm = TRUE), "\n")
+```
+
+The final datasets (`panel_station_day` and `panel_station_hour`) are exported as Parquet files for efficient use in our analysis pipeline.
+
+---
+
+# Summary
 
 ```{r summary_stats, include=FALSE}
 total_ridership_millions <- sum(ridership$total_ridership, na.rm=TRUE) / 1e6
@@ -398,14 +645,12 @@ manhattan_events <- sum(events_analysis$borough == "Manhattan", na.rm=TRUE)
 
 Our integrated dataset provides comprehensive coverage of Manhattan subway ridership and its potential drivers:
 
-**Ridership:** `r format(nrow(ridership), big.mark=",")` hourly observations across `r n_distinct(ridership$station_complex_id)` Manhattan stations (January 2024–October 2025), totaling over `r round(total_ridership_millions)` million rides. Peak stations like Times Square-42 St and Grand Central-42 St account for a substantial share of daily traffic.
+**Ridership:** `r format(nrow(ridership), big.mark=",")` hourly observations across `r n_distinct(ridership$station_complex_id)` Manhattan stations (January 2024–October 2025), totaling over `r round(total_ridership_millions)` million rides.
 
-**Weather:** `r format(nrow(weather), big.mark=",")` daily observations from Central Park (2020-2025), including `r heatwave_days` heat wave days (≥90°F) and `r storm_days` major storm events (≥1 inch precipitation) during our study period. Seasonal variation ranges from winter averages in the 30s-40s°F to summer peaks above 90°F.
+**Weather:** `r format(nrow(weather), big.mark=",")` daily observations from Central Park (2020-2025), including `r heatwave_days` heat wave days (≥90°F) and `r storm_days` major storm events (≥1 inch precipitation) during our study period.
 
-**Events:** `r format(nrow(events), big.mark=",")` large permitted events (parades, street fairs, athletic races) covering 2024-2025, with `r format(manhattan_events, big.mark=",")` in Manhattan. Events show strong seasonality (summer/fall peaks) and include major NYC happenings (NYC Marathon, street festivals, parades). Smart filtering excluded small-scale events (sports leagues, film shoots) to focus on activities likely to impact subway ridership.
+**Events:** `r format(nrow(events), big.mark=",")` large permitted events covering 2024-2025, with `r format(manhattan_events, big.mark=",")` in Manhattan. Events show strong seasonality (summer/fall peaks) and include major NYC happenings.
 
 **Stations:** Complete geospatial coverage of `r nrow(manhattan_stations)` Manhattan subway stations, enabling spatial analysis of ridership patterns and proximity-based event impacts.
 
 All four datasets align temporally and spatially, providing comprehensive infrastructure for analyzing **weather and event impacts** on station-level subway ridership across Manhattan's 22-month study period.
-
-**Download scripts:** [`download_full_ridership_monthly.R`](data/download_full_ridership_monthly.R), [`download_historical_events_monthly.R`](data/download_historical_events_monthly.R), [`download_noaa_weather.R`](data/download_noaa_weather.R)

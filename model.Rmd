@@ -10,7 +10,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE, message = FALSE, warning = FALSE,
-  fig.width = 10, fig.height = 6
+  fig.width = 10, fig.height = 6,
+  fig.path = "images/model-"
 )
 
 suppressPackageStartupMessages({

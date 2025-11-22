@@ -5,7 +5,7 @@ output:
     toc: false
 ---
 
-<img src="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2940&auto=format&fit=crop" style="width:100%; border-radius: 10px; margin-bottom: 20px;">
+<img src="images/nyc_subway_hero.jpg" style="width:100%; border-radius: 10px; margin-bottom: 20px;">
 
 ## Welcome
 

@@ -11,7 +11,7 @@
 
 
 
-<title>Data</title>
+<title>Data &amp; Methods</title>
 
 <script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -355,15 +355,18 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Data</h1>
+<h1 class="title toc-ignore">Data &amp; Methods</h1>
 
 </div>
 
 
 <p>We acquired four datasets for analyzing weather and event impacts on
-Manhattan subway ridership (2024-2025). Each presented unique technical
-challenges that required creative solutions.</p>
+Manhattan subway ridership (2024-2025). This page documents both our
+data sources and the wrangling pipeline that transforms raw data into
+analysis-ready panels.</p>
 <hr />
+<div id="part-1-data-sources" class="section level1">
+<h1>Part 1: Data Sources</h1>
 <div id="mta-subway-ridership" class="section level2">
 <h2>MTA Subway Ridership</h2>
 <p><strong>The Disaggregation Challenge:</strong></p>
@@ -441,7 +444,7 @@ p_top &lt;- ridership |&gt;
   theme(plot.title = element_text(size = 11), axis.text.y = element_text(size = 8))
 
 p_top | (p_daily / p_hourly)</code></pre>
-<p><img src="data_files/figure-html/plot_ridership-1.png" width="960" /></p>
+<p><img src="images/data-plot_ridership-1.png" width="960" /></p>
 <hr />
 </div>
 <div id="weather-data" class="section level2">
@@ -511,77 +514,11 @@ p_season &lt;- seasonal_weather |&gt;
   theme(legend.position = &quot;none&quot;, axis.text.x = element_text(angle = 45, hjust = 1))
 
 p_ts / p_season</code></pre>
-<p><img src="data_files/figure-html/plot_weather-1.png" width="960" /></p>
+<p><img src="images/data-plot_weather-1.png" width="960" /></p>
 <hr />
 </div>
-<div id="event-geocoding-station-matching" class="section level2">
-<h2>Event Geocoding &amp; Station Matching</h2>
-<p>A critical component of our analysis was linking textual event data
-to physical subway stations. The <em>NYC Permitted Event
-Information</em> dataset provides event locations as text strings (e.g.,
-“5 AVENUE between 15 STREET and 16 STREET”) but lacks geospatial
-coordinates.</p>
-<p><strong>Methodology:</strong></p>
-<ol style="list-style-type: decimal">
-<li><strong>Filtering</strong>: We first isolated “Large Events”
-(Parades, Street Fairs) in Manhattan.</li>
-<li><strong>Geocoding</strong>: We used the <code>tidygeocoder</code>
-package to convert text addresses into Latitude/Longitude coordinates.
-<ul>
-<li>Primary Service: ArcGIS (high accuracy for NYC street
-intersections).</li>
-<li>Fallback Service: OpenStreetMap (OSM) for failed queries.</li>
-</ul></li>
-<li><strong>Spatial Matching</strong>: We performed a nearest-neighbor
-spatial join using the <code>sf</code> package.
-<ul>
-<li>For each geocoded event, we identified the nearest subway station
-complex.</li>
-<li><strong>Threshold:</strong> Events were only linked if they occurred
-within <strong>800 meters (approx. 0.5 miles)</strong> of a
-station.</li>
-</ul></li>
-</ol>
-<p><strong>Code Implementation:</strong></p>
-<pre class="r"><code># Pseudocode of our spatial matching logic
-library(tidygeocoder)
-library(sf)
-
-# 1. Geocode event locations
-events_geocoded &lt;- events %&gt;%
-  geocode(address = event_location, method = &quot;arcgis&quot;)
-
-# 2. Convert to Simple Features (sf) objects
-events_sf &lt;- st_as_sf(events_geocoded, coords = c(&quot;long&quot;, &quot;lat&quot;), crs = 4326)
-stations_sf &lt;- st_as_sf(stations, coords = c(&quot;longitude&quot;, &quot;latitude&quot;), crs = 4326)
-
-# 3. Find nearest station within 800m
-nearest_indices &lt;- st_nearest_feature(events_sf, stations_sf)
-distances &lt;- st_distance(events_sf, stations_sf[nearest_indices,], by_element = TRUE)
-
-# 4. Filter and Join
-events_linked &lt;- events_sf %&gt;%
-  mutate(
-    nearest_station_id = stations_sf$station_complex_id[nearest_indices],
-    distance_meters = as.numeric(distances)
-  ) %&gt;%
-  filter(distance_meters &lt;= 800)</code></pre>
-<p>This process allowed us to move from a city-wide list of events to a
-precise, station-specific “Event Calendar,” enabling the localized
-“Blast Radius” analysis.</p>
-<div id="data-wrangling-log" class="section level3">
-<h3>Data Wrangling Log</h3>
-<blockquote>
-<p><strong>See the Code:</strong> For the complete, step-by-step R code
-used to geocode events and spatially join them to stations, please visit
-our detailed <a href="data_wrangling.html"><strong>Data Wrangling
-Log</strong></a>.</p>
-</blockquote>
-<hr />
-</div>
-</div>
-<div id="permitted-events-analysis" class="section level2">
-<h2>Permitted Events Analysis</h2>
+<div id="permitted-events" class="section level2">
+<h2>Permitted Events</h2>
 <p>The NYC Permitted Event Information - Historical dataset (bkfu-528j)
 contains comprehensive event records but includes hundreds of thousands
 of small-scale activities (youth sports, film shoots, farmers markets)
@@ -645,7 +582,7 @@ p_event_types &lt;- events_analysis |&gt;
   theme(plot.title = element_text(size = 11))
 
 p_events_time / p_event_types</code></pre>
-<p><img src="data_files/figure-html/plot_events-1.png" width="960" /></p>
+<p><img src="images/data-plot_events-1.png" width="960" /></p>
 <hr />
 </div>
 <div id="station-locations" class="section level2">
@@ -724,28 +661,314 @@ ggplot() +
     panel.grid = element_blank(),
     legend.position = &quot;right&quot;
   )</code></pre>
-<p><img src="data_files/figure-html/plot_stations-1.png" width="768" /></p>
+<p><img src="images/data-plot_stations-1.png" width="768" /></p>
+<p><strong>Download scripts:</strong> <a
+href="data/download_full_ridership_monthly.R"><code>download_full_ridership_monthly.R</code></a>,
+<a
+href="data/download_historical_events_monthly.R"><code>download_historical_events_monthly.R</code></a>,
+<a
+href="data/download_noaa_weather.R"><code>download_noaa_weather.R</code></a></p>
 <hr />
 </div>
-<div id="summary" class="section level2">
-<h2>Summary</h2>
+</div>
+<div id="part-2-data-wrangling-pipeline" class="section level1">
+<h1>Part 2: Data Wrangling Pipeline</h1>
+<p>This section documents the complete data wrangling process that
+transforms our raw datasets into analysis-ready panels. The goal is to
+create a robust foundation for examining the interplay between MTA
+subway ridership, weather conditions, and major NYC events.</p>
+<div id="raw-data-ingestion" class="section level2">
+<h2>Raw Data Ingestion</h2>
+<p>We begin by loading the raw datasets and performing initial cleaning:
+standardizing column names, parsing date/time stamps, and filtering to
+Manhattan for the 2024-2025 study period.</p>
+<pre class="r"><code>path_rid_2024 &lt;- &quot;data/mta_ridership_full/ridership_2024_manhattan.csv&quot;
+path_rid_2025 &lt;- &quot;data/mta_ridership_full/ridership_2025_manhattan.csv&quot;
+path_weather &lt;- &quot;data/weather/central_park_weather_wide.csv&quot;
+path_events &lt;- &quot;data/events/nyc_large_events_2024_2025.csv&quot;
+path_stations &lt;- &quot;data/stations/mta_station_complexes.csv&quot;
+
+rid24 &lt;- vroom::vroom(path_rid_2024, show_col_types = FALSE)
+rid25 &lt;- vroom::vroom(path_rid_2025, show_col_types = FALSE)
+weather_raw &lt;- readr::read_csv(path_weather, show_col_types = FALSE)
+events_raw &lt;- vroom::vroom(path_events, show_col_types = FALSE)
+stations_raw &lt;- readr::read_csv(path_stations, show_col_types = FALSE)
+
+rid &lt;- bind_rows(rid24, rid25) |&gt;
+  clean_names() |&gt;
+  mutate(
+    transit_timestamp = ymd_hms(transit_timestamp, quiet = TRUE),
+    date = as_date(transit_timestamp),
+    hour = hour(transit_timestamp)
+  ) |&gt;
+  select(station_complex_id, station_complex, borough, transit_timestamp, date, hour, total_ridership)
+
+weather_clean &lt;- weather_raw |&gt;
+  clean_names() |&gt;
+  mutate(
+    date = as_date(date),
+    tmax = as.numeric(tmax),
+    prcp = as.numeric(prcp),
+    snow = as.numeric(snow)
+  ) |&gt;
+  select(date, tmax, prcp, snow) |&gt;
+  arrange(date)
+
+events_clean &lt;- events_raw |&gt;
+  clean_names() |&gt;
+  mutate(
+    start_dt = ymd_hms(start_date_time, quiet = TRUE),
+    end_dt = ymd_hms(end_date_time, quiet = TRUE),
+    event_borough = str_to_lower(event_borough)
+  ) |&gt;
+  filter(!is.na(start_dt), !is.na(end_dt), end_dt &gt;= start_dt)
+
+stations_clean &lt;- stations_raw |&gt;
+  clean_names() |&gt;
+  filter(str_to_lower(borough) == &quot;manhattan&quot;, !is.na(latitude), !is.na(longitude))</code></pre>
+</div>
+<div id="station-hour-panel-construction" class="section level2">
+<h2>Station-Hour Panel Construction</h2>
+<p>The most granular unit of our analysis is the station-hour. We build
+the primary <code>panel_station_hour</code> dataset and calculate
+<code>hours_present</code> per station-day to identify potential missing
+data.</p>
+<pre class="r"><code>panel_station_hour &lt;- rid |&gt;
+  select(station_complex_id, station_complex, date, hour, total_ridership) |&gt;
+  arrange(station_complex_id, date, hour)
+
+hour_cov &lt;- panel_station_hour |&gt;
+  group_by(station_complex_id, date) |&gt;
+  summarize(hours_present = n_distinct(hour), .groups = &quot;drop&quot;)</code></pre>
+</div>
+<div id="station-day-aggregation" class="section level2">
+<h2>Station-Day Aggregation</h2>
+<p>For analyses focusing on daily impacts (e.g., heatwaves), we
+aggregate to <code>panel_station_day</code> by summing total ridership
+for each station on each day.</p>
+<pre class="r"><code>panel_station_day &lt;- panel_station_hour |&gt;
+  group_by(station_complex_id, station_complex, date) |&gt;
+  summarize(
+    entries_day = sum(total_ridership, na.rm = TRUE),
+    .groups = &quot;drop&quot;
+  ) |&gt;
+  left_join(hour_cov, by = c(&quot;station_complex_id&quot;, &quot;date&quot;)) |&gt;
+  mutate(hours_present = replace_na(hours_present, 0L))</code></pre>
+</div>
+<div id="weather-feature-engineering" class="section level2">
+<h2>Weather Feature Engineering</h2>
+<p>We integrate daily weather observations and engineer two key
+features:</p>
+<ul>
+<li><strong><code>heatwave</code></strong>: Binary indicator for periods
+with max temperature ≥ 90°F for consecutive days</li>
+<li><strong><code>storm</code></strong>: Binary indicator for
+significant precipitation events (≥ 1 inch)</li>
+</ul>
+<pre class="r"><code>panel_station_day &lt;- panel_station_day |&gt;
+  left_join(weather_clean, by = &quot;date&quot;) |&gt;
+  arrange(station_complex_id, date) |&gt;
+  group_by(station_complex_id) |&gt;
+  mutate(
+    heat_day = if_else(!is.na(tmax) &amp; tmax &gt;= params$heat_threshold_f, 1L, 0L),
+    heat_roll = slide_int(heat_day, sum, .before = params$heat_consec_days - 1, .complete = TRUE),
+    heatwave = if_else(!is.na(heat_roll) &amp; heat_roll &gt;= params$heat_consec_days, 1L, 0L),
+    storm = if_else(!is.na(prcp) &amp; prcp &gt;= params$storm_threshold_in, 1L, 0L),
+    weather_missing = as.integer(is.na(tmax) | is.na(prcp))
+  ) |&gt;
+  ungroup()</code></pre>
+</div>
+<div id="event-geocoding-spatial-matching" class="section level2">
+<h2>Event Geocoding &amp; Spatial Matching</h2>
+<p>This critical step links textual event data to subway stations:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Filter</strong> to large-scale Manhattan events (parades,
+races, festivals)</li>
+<li><strong>Geocode</strong> text addresses to coordinates using
+ArcGIS/OSM</li>
+<li><strong>Spatial join</strong> events to nearest station within 800m
+radius</li>
+<li><strong>Flag</strong> affected station-hours and station-days</li>
+</ol>
+<pre class="r"><code>event_radius_m &lt;- params$event_radius_m
+
+# Filter to Manhattan focus events
+events_manhattan &lt;- events_clean |&gt;
+  filter(is.na(event_borough) | str_detect(event_borough, &quot;manhattan&quot;))
+
+focus_types &lt;- c(&quot;parade&quot;, &quot;athletic&quot;, &quot;race&quot;, &quot;tour&quot;, &quot;street&quot;, &quot;block&quot;, &quot;festival&quot;, &quot;fair&quot;)
+events_focus &lt;- events_manhattan |&gt;
+  filter(!is.na(event_type)) |&gt;
+  filter(purrr::reduce(focus_types, \(acc, key) acc | str_detect(str_to_lower(event_type), key), .init = FALSE)) |&gt;
+  distinct(event_id, .keep_all = TRUE) |&gt;
+  mutate(event_id = as.character(event_id))
+
+# Load geocode cache
+cache_path &lt;- &quot;data/events/nyc_large_events_geocoded.csv&quot;
+if (file.exists(cache_path)) {
+  geo_cache &lt;- readr::read_csv(
+    cache_path,
+    col_types = cols(.default = col_guess(), event_id = col_character()),
+    show_col_types = FALSE
+  )
+} else {
+  geo_cache &lt;- tibble(event_id = character(), lon = numeric(), lat = numeric())
+}
+
+# Join with geocoded coordinates
+events_focus_geo &lt;- events_focus |&gt;
+  left_join(geo_cache, by = &quot;event_id&quot;)
+
+evt_geo_ok &lt;- events_focus_geo |&gt;
+  filter(!is.na(lon), !is.na(lat)) |&gt;
+  mutate(
+    start_hr = floor_date(start_dt, &quot;hour&quot;),
+    end_hr = ceiling_date(end_dt, &quot;hour&quot;)
+  )
+
+# Spatial matching to stations
+if (nrow(evt_geo_ok) == 0) {
+  events_station_hour &lt;- tibble(
+    station_complex_id = character(),
+    date = as.Date(character()),
+    hour = integer(),
+    event_hour = integer()
+  )
+} else {
+  stn_sf &lt;- st_as_sf(stations_clean, coords = c(&quot;longitude&quot;, &quot;latitude&quot;), crs = 4326) |&gt;
+    st_transform(2263)
+  evt_sf &lt;- st_as_sf(evt_geo_ok, coords = c(&quot;lon&quot;, &quot;lat&quot;), crs = 4326) |&gt;
+    st_transform(2263)
+
+  near_idx &lt;- st_nearest_feature(evt_sf, stn_sf)
+  dist_ft &lt;- st_distance(evt_sf, stn_sf[near_idx, ], by_element = TRUE)
+  dist_m &lt;- as.numeric(dist_ft) * 0.3048
+
+  evt_joined &lt;- evt_geo_ok |&gt;
+    mutate(
+      station_complex_id = stn_sf$station_complex_id[near_idx],
+      dist_m = dist_m
+    ) |&gt;
+    filter(dist_m &lt;= event_radius_m) |&gt;
+    select(event_id, station_complex_id, start_hr, end_hr, dist_m)
+
+  events_station_hour &lt;- purrr::map_dfr(seq_len(nrow(evt_joined)), function(i) {
+    tibble(
+      station_complex_id = evt_joined$station_complex_id[i],
+      hour_ts = seq(evt_joined$start_hr[i], evt_joined$end_hr[i], by = &quot;1 hour&quot;)
+    )
+  }) |&gt;
+    mutate(date = as_date(hour_ts), hour = hour(hour_ts), event_hour = 1L) |&gt;
+    distinct(station_complex_id, date, hour, .keep_all = TRUE) |&gt;
+    select(station_complex_id, date, hour, event_hour)
+}
+
+# Join events to panels
+panel_station_hour &lt;- panel_station_hour |&gt;
+  left_join(events_station_hour, by = c(&quot;station_complex_id&quot;, &quot;date&quot;, &quot;hour&quot;)) |&gt;
+  mutate(event_hour = if_else(is.na(event_hour), 0L, event_hour))
+
+event_day_by_station &lt;- panel_station_hour |&gt;
+  group_by(station_complex_id, date) |&gt;
+  summarize(event_day = as.integer(any(event_hour == 1L)), .groups = &quot;drop&quot;)
+
+panel_station_day &lt;- panel_station_day |&gt;
+  left_join(event_day_by_station, by = c(&quot;station_complex_id&quot;, &quot;date&quot;)) |&gt;
+  mutate(event_day = if_else(is.na(event_day), 0L, event_day))</code></pre>
+</div>
+<div id="holiday-flags" class="section level2">
+<h2>Holiday Flags</h2>
+<p>We flag US federal holidays using the <code>timeDate</code> package,
+as ridership patterns on holidays often mimic Sunday schedules.</p>
+<pre class="r"><code>holidays &lt;- tibble(
+  date = as.Date(holidayNYSE(2024:2025)),
+  is_holiday = &quot;Yes&quot;
+)
+
+panel_station_day &lt;- panel_station_day |&gt;
+  left_join(holidays, by = &quot;date&quot;) |&gt;
+  mutate(
+    is_holiday = case_match(
+      is_holiday,
+      NA ~ &quot;No&quot;,
+      &quot;Yes&quot; ~ &quot;Yes&quot;
+    )
+  )</code></pre>
+</div>
+<div id="baseline-calculation" class="section level2">
+<h2>Baseline Calculation</h2>
+<p>To calculate percent change in ridership, we define the baseline as
+the <strong>median ridership</strong> for each station by day-of-week
+and month, accounting for weekly and seasonal patterns.</p>
+<pre class="r"><code>panel_station_day &lt;- panel_station_day |&gt;
+  mutate(
+    dow = wday(date, label = TRUE, week_start = 1),
+    month = month(date)
+  )
+
+baseline_sd &lt;- panel_station_day |&gt;
+  group_by(station_complex_id, dow, month) |&gt;
+  summarize(baseline_sd = median(entries_day, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+panel_station_day &lt;- panel_station_day |&gt;
+  left_join(baseline_sd, by = c(&quot;station_complex_id&quot;, &quot;dow&quot;, &quot;month&quot;)) |&gt;
+  mutate(
+    pct_change = log((entries_day + 1) / (baseline_sd + 1))
+  )
+
+baseline_sh &lt;- panel_station_hour |&gt;
+  mutate(
+    dow = wday(date, label = TRUE, week_start = 1),
+    month = month(date)
+  ) |&gt;
+  group_by(station_complex_id, dow, month, hour) |&gt;
+  summarize(baseline_sh = median(total_ridership, na.rm = TRUE), .groups = &quot;drop&quot;)
+
+panel_station_hour &lt;- panel_station_hour |&gt;
+  mutate(
+    dow = wday(date, label = TRUE, week_start = 1),
+    month = month(date)
+  ) |&gt;
+  left_join(baseline_sh, by = c(&quot;station_complex_id&quot;, &quot;dow&quot;, &quot;month&quot;, &quot;hour&quot;)) |&gt;
+  mutate(
+    hourly_pct_change = log((total_ridership + 1) / (baseline_sh + 1))
+  )</code></pre>
+</div>
+<div id="output-summary" class="section level2">
+<h2>Output Summary</h2>
+<pre class="r"><code>cat(&quot;Panel Station Day:&quot;, nrow(panel_station_day), &quot;rows\n&quot;)</code></pre>
+<pre><code>## Panel Station Day: 81025 rows</code></pre>
+<pre class="r"><code>cat(&quot;Panel Station Hour:&quot;, nrow(panel_station_hour), &quot;rows\n&quot;)</code></pre>
+<pre><code>## Panel Station Hour: 1921163 rows</code></pre>
+<pre class="r"><code>cat(&quot;Stations:&quot;, n_distinct(panel_station_day$station_complex_id), &quot;\n&quot;)</code></pre>
+<pre><code>## Stations: 123</code></pre>
+<pre class="r"><code>cat(&quot;Date range:&quot;, as.character(min(panel_station_day$date)), &quot;to&quot;, as.character(max(panel_station_day$date)), &quot;\n&quot;)</code></pre>
+<pre><code>## Date range: NA to NA</code></pre>
+<pre class="r"><code>cat(&quot;Heatwave days:&quot;, sum(panel_station_day$heatwave == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>
+<pre><code>## Heatwave days: 1108</code></pre>
+<pre class="r"><code>cat(&quot;Storm days:&quot;, sum(panel_station_day$storm == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>
+<pre><code>## Storm days: 2089</code></pre>
+<pre class="r"><code>cat(&quot;Event-affected station-days:&quot;, sum(panel_station_day$event_day == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>
+<pre><code>## Event-affected station-days: 2472</code></pre>
+<p>The final datasets (<code>panel_station_day</code> and
+<code>panel_station_hour</code>) are exported as Parquet files for
+efficient use in our analysis pipeline.</p>
+<hr />
+</div>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
 <p>Our integrated dataset provides comprehensive coverage of Manhattan
 subway ridership and its potential drivers:</p>
 <p><strong>Ridership:</strong> 1,921,163 hourly observations across 123
 Manhattan stations (January 2024–October 2025), totaling over 1255
-million rides. Peak stations like Times Square-42 St and Grand
-Central-42 St account for a substantial share of daily traffic.</p>
+million rides.</p>
 <p><strong>Weather:</strong> 1,642 daily observations from Central Park
 (2020-2025), including 35 heat wave days (≥90°F) and 18 major storm
-events (≥1 inch precipitation) during our study period. Seasonal
-variation ranges from winter averages in the 30s-40s°F to summer peaks
-above 90°F.</p>
-<p><strong>Events:</strong> 149,524 large permitted events (parades,
-street fairs, athletic races) covering 2024-2025, with 53,977 in
-Manhattan. Events show strong seasonality (summer/fall peaks) and
-include major NYC happenings (NYC Marathon, street festivals, parades).
-Smart filtering excluded small-scale events (sports leagues, film
-shoots) to focus on activities likely to impact subway ridership.</p>
+events (≥1 inch precipitation) during our study period.</p>
+<p><strong>Events:</strong> 149,524 large permitted events covering
+2024-2025, with 53,977 in Manhattan. Events show strong seasonality
+(summer/fall peaks) and include major NYC happenings.</p>
 <p><strong>Stations:</strong> Complete geospatial coverage of 155
 Manhattan subway stations, enabling spatial analysis of ridership
 patterns and proximity-based event impacts.</p>
@@ -753,12 +976,6 @@ patterns and proximity-based event impacts.</p>
 comprehensive infrastructure for analyzing <strong>weather and event
 impacts</strong> on station-level subway ridership across Manhattan’s
 22-month study period.</p>
-<p><strong>Download scripts:</strong> <a
-href="data/download_full_ridership_monthly.R"><code>download_full_ridership_monthly.R</code></a>,
-<a
-href="data/download_historical_events_monthly.R"><code>download_historical_events_monthly.R</code></a>,
-<a
-href="data/download_noaa_weather.R"><code>download_noaa_weather.R</code></a></p>
 </div>
 
 
