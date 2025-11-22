@@ -11,13 +11,44 @@
   --border-color: #e0e0e0;
 }
 
+/* --- Mobile Overflow Fix --- */
+html {
+  overflow-x: hidden;
+}
+
 body {
+  overflow-x: hidden;
+  width: 100%;
   background-color: var(--bg-color);
   font-family: 'Lora', serif; /* Editorial feel for body text */
   font-size: 18px;
   line-height: 1.8;
   color: var(--text-color);
   margin-top: 80px; /* Space for fixed navbar */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Responsive tables */
+table {
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+/* Prevent long text from overflowing */
+p, li, td, th {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* --- Responsive Iframe (YouTube) --- */
+iframe {
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
 }
 
 /* --- Typography --- */
