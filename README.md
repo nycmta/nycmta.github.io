@@ -1,10 +1,13 @@
-# NYC MTA Subway Ridership Analysis
+# The Pulse of NYC: Weather, Events, and the Subway
 
 ## Project Overview
 
-This project analyzes the impact of weather events and large-scale public events on NYC subway ridership at the station level from 2020 to 2025.
+This project analyzes how **extreme weather** and **mega-events** impact NYC subway ridership at the station level. By examining over 2 million hourly ridership records from January 2024 to October 2025, we uncover hidden patterns in Manhattan's daily commute.
 
-**Team Members:**
+**Course:** P8105 Data Science I | Fall 2025
+
+## Team Members
+
 - William M. Donovan (wd2328)
 - Hantang Qin (hq2229)
 - Yongyan Liu (yl6107)
@@ -13,22 +16,61 @@ This project analyzes the impact of weather events and large-scale public events
 
 ## Project Website
 
-The project website is built using R Markdown and hosted on GitHub Pages.
+**Website URL:** https://nycmta.github.io
 
-**Website URL:** [To be added after deployment]
+**GitHub Repository:** https://github.com/nycmta/nycmta.github.io
+
+## Key Findings
+
+Our analysis presents four data stories:
+
+1. **The Goldilocks Zone** - How temperature and precipitation jointly affect ridership
+2. **The Event Blast Radius** - Station-level ridership changes during major NYC events
+3. **Station Personalities** - Classifying stations as Residential vs Commercial based on hourly patterns
+4. **Rain Sensitivity by Hour** - When commuters are most likely to avoid the subway due to rain
 
 ## Repository Structure
 
 ```
 nycmta/
-├── index.Rmd           # Project proposal (home page)
-├── _site.yml           # Website configuration
-├── styles.css          # Custom CSS styling
-├── README.md           # This file
-├── data/               # (To be created) Data files
-├── scripts/            # (To be created) R scripts for analysis
-└── figures/            # (To be created) Generated plots
+├── index.Rmd              # Homepage
+├── model.Rmd              # Analysis (Four Stories)
+├── data.Rmd               # Data sources & wrangling pipeline
+├── report.Rmd             # Full academic report
+├── _site.yml              # Website configuration
+├── styles.css             # Custom CSS styling
+├── images/                # All figures and images
+├── site_libs/             # R Markdown site libraries
+└── data/
+    ├── derived/           # Analysis-ready panel data (parquet)
+    ├── mta_ridership_full/# Raw ridership CSVs
+    ├── weather/           # NOAA weather data
+    ├── events/            # NYC permitted events
+    ├── stations/          # Station complex coordinates
+    ├── documentation/     # Data documentation
+    └── *.R                # Download scripts
 ```
+
+## Data Sources
+
+- **MTA Subway Ridership:** Hourly ridership by station complex via [NY Open Data](https://data.ny.gov/)
+- **Weather:** Daily observations from Central Park via [NOAA GHCN-Daily](https://www.ncei.noaa.gov/cdo-web/)
+- **Events:** NYC Permitted Event Information via [NYC Open Data](https://data.cityofnewyork.us/)
+- **Stations:** Station complex coordinates extracted from MTA data
+
+## Reproducing the Analysis
+
+1. Clone the repository
+2. Run the download scripts in `data/` to fetch raw data:
+   ```r
+   source("data/download_full_ridership_monthly.R")
+   source("data/download_historical_events_monthly.R")
+   source("data/download_noaa_weather.R")
+   ```
+3. Build the website:
+   ```r
+   rmarkdown::render_site()
+   ```
 
 ## Contact
 

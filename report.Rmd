@@ -26,6 +26,7 @@ Simultaneously, the city is a stage for global events. The NYC Marathon, Pride M
 ## Related Work
 
 Our work builds on a rich tradition of urban analytics. Previous studies have looked at:
+
 *   **Weather & Transit:** Studies in cities like Chicago and London have established that rain reduces discretionary travel, while extreme cold has a non-linear "chilling" effect on ridership.
 *   **Event Impact:** Transport agencies often use "special event schedules," but granular, station-level impact analysis is often proprietary or retrospective.
 *   **P8105 Precedents:** We drew inspiration from past projects like *Bikes in NYC* (Fall 2020), which successfully used spatial visualization to tell a story about transport usage.
@@ -55,41 +56,47 @@ We synthesized data from four disparate sources to build a comprehensive **Stati
 ## Exploratory Analysis
 
 Our initial exploration revealed strong temporal patterns.
+
 *   **Weekly Rhythm:** The classic "two-humped" camel shape of AM/PM peaks on weekdays contrasts sharply with the broad, single midday peak of weekends.
 *   **Seasonality:** Ridership shows a dip in deep winter (Jan/Feb) and stability through the summer, debunking the idea that New Yorkers abandon the subway in July.
 
+We moved beyond simple correlations to four targeted analyses (detailed on the [Analysis](model.html) page).
 
-## Additional Analysis (The Three Stories)
-
-We moved beyond simple correlations to three targeted analyses (detailed on the [Analysis](model.html) page).
-
-### Story 1: The Goldilocks Curve
+### Story 1: The Goldilocks Zone
 Using a **Generalized Additive Model (GAM)**, we found that the relationship between temperature and ridership is **non-linear**.
 *   **The "Comfort Zone":** Ridership peaks between **60°F and 75°F**.
 *   **The "Cold Snap":** Ridership drops significantly as temperatures approach freezing (32°F).
 *   **The "Heat Resilience":** Surprisingly, heat waves (>90°F) show a much smaller dip than cold snaps. New Yorkers will sweat, but they won't freeze.
 
-### Story 2: The Blast Radius
+### Story 2: The Event Blast Radius
 We mapped the station-level percent change in ridership during the **NYC Marathon** and **Pride March**.
 *   **Marathon:** Created a linear "corridor of activity" along the Upper West Side and 1st Avenue.
 *   **Pride:** Showed an intense, concentrated "hotspot" in the West Village, with some stations seeing surges of >50% above baseline.
 *   This confirms that "Citywide" events are often geographically specific phenomena.
 
-### Story 3: Commuters vs. Tourists
-We used **K-Means Clustering** on hourly ridership profiles to classify stations.
-*   **Cluster 1 (Commuters):** Sharp peaks at 8 AM and 6 PM.
-*   **Cluster 2 (Evening/Mixed):** Broader peaks, active late at night.
-*   **Result:** "Commuter" stations are **more resilient** to rain. "Evening/Mixed" stations see larger drops on rainy days, suggesting that leisure trips are the first to be cancelled when it pours.
+### Story 3: Station Personalities
+We used **K-Means Clustering** on hourly ridership profiles to classify stations by commute flow direction.
+*   **Residential Stations:** Sharp morning peaks as commuters leave their neighborhoods.
+*   **Commercial Stations:** Evening peaks as workers leave offices to head home.
+*   **Geographic Pattern:** Commercial stations cluster in Midtown and the Financial District, while Residential stations dominate the Upper West Side and Upper East Side. Transit hubs like Penn Station and Times Square show Residential patterns despite their Midtown location.
+
+### Story 4: Rain Sensitivity by Hour
+We analyzed how rain sensitivity varies throughout the day.
+*   **Morning Rush Most Sensitive:** Ridership drops 20-30% during 7-9 AM on rainy days—commuters switch to alternatives due to strict arrival deadlines.
+*   **Evening More Resilient:** Afternoon/evening shows smaller drops (5-18%) because travelers can wait for rain to stop.
+*   **MTA Implication:** Service adjustments should focus on morning rush demand reductions on rainy days.
 
 ## Discussion
 
 Our findings paint a picture of a transit system that is deeply intertwined with the physical and social environment of the city.
 
 *   **Resilience:** The system is remarkably resilient to heat but vulnerable to cold.
-*   **Inequality of Impact:** Rain doesn't treat all stations equally. The "Fair Weather Rider" is likely a leisure rider, while the commuter pushes through the storm.
+*   **Temporal Patterns:** Morning commuters are most sensitive to rain due to strict work deadlines, while evening travelers can wait for weather to clear.
+*   **Station Identity:** The Residential/Commercial classification reveals how Manhattan's geography shapes commute flows—workers flow inward in the morning and outward in the evening.
 *   **Event Planning:** The "Blast Radius" maps could help the MTA target service increases more precisely—sending extra trains not just "to Manhattan" but specifically to the 1/2/3 lines during the Marathon or the A/C/E during Pride.
 
 **Limitations:**
+
 *   **Manhattan Focus:** We limited our scope to Manhattan. The outer boroughs likely show different "Commuter" dynamics.
 *   **Events Data:** "Permitted Events" is a noisy dataset. We had to manually curate major events to filter out block parties.
 

@@ -15,17 +15,16 @@ This project explores how **Extreme Weather** (from heat waves to nor'easters) a
 
 ## Explore the Project
 
-*   **[Analysis](model.html):** See our three core data stories—The Goldilocks Curve, The Event Blast Radius, and Commuter Resilience.
+*   **[Analysis](model.html):** See our four data stories—The Goldilocks Zone, The Event Blast Radius, Station Personalities, and Rain Sensitivity.
 *   **[Data & Methods](data.html):** How we wrangled 21 million rows of data down to a usable panel.
 *   **[Report](report.html):** The full academic report detailing our motivation, methods, and findings.
+*   **[GitHub Repository](https://github.com/nycmta/nycmta.github.io):** View the source code and data.
 
 ---
 
 ## Project Screencast
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/placeholder" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
-*(Screencast coming soon)*
+<iframe width="560" height="315" src="https://www.youtube.com/embed/jRjcoBgRWfI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ---
 
