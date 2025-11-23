@@ -937,8 +937,8 @@ panel_station_hour &lt;- panel_station_hour |&gt;
 <pre><code>## Panel Station Hour: 1921163 rows</code></pre>
 <pre class="r"><code>cat(&quot;Stations:&quot;, n_distinct(panel_station_day$station_complex_id), &quot;\n&quot;)</code></pre>
 <pre><code>## Stations: 123</code></pre>
-<pre class="r"><code>cat(&quot;Date range:&quot;, as.character(min(panel_station_day$date)), &quot;to&quot;, as.character(max(panel_station_day$date)), &quot;\n&quot;)</code></pre>
-<pre><code>## Date range: NA to NA</code></pre>
+<pre class="r"><code>cat(&quot;Date range:&quot;, as.character(min(panel_station_day$date, na.rm = TRUE)), &quot;to&quot;, as.character(max(panel_station_day$date, na.rm = TRUE)), &quot;\n&quot;)</code></pre>
+<pre><code>## Date range: 2024-01-01 to 2025-10-19</code></pre>
 <pre class="r"><code>cat(&quot;Heatwave days:&quot;, sum(panel_station_day$heatwave == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>
 <pre><code>## Heatwave days: 1108</code></pre>
 <pre class="r"><code>cat(&quot;Storm days:&quot;, sum(panel_station_day$storm == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>

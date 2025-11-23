@@ -619,7 +619,7 @@ panel_station_hour <- panel_station_hour |>
 cat("Panel Station Day:", nrow(panel_station_day), "rows\n")
 cat("Panel Station Hour:", nrow(panel_station_hour), "rows\n")
 cat("Stations:", n_distinct(panel_station_day$station_complex_id), "\n")
-cat("Date range:", as.character(min(panel_station_day$date)), "to", as.character(max(panel_station_day$date)), "\n")
+cat("Date range:", as.character(min(panel_station_day$date, na.rm = TRUE)), "to", as.character(max(panel_station_day$date, na.rm = TRUE)), "\n")
 cat("Heatwave days:", sum(panel_station_day$heatwave == 1, na.rm = TRUE), "\n")
 cat("Storm days:", sum(panel_station_day$storm == 1, na.rm = TRUE), "\n")
 cat("Event-affected station-days:", sum(panel_station_day$event_day == 1, na.rm = TRUE), "\n")

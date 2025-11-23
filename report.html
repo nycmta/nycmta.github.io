@@ -11,7 +11,7 @@
 
 <meta name="author" content="William M. Donovan (wd2328), Hantang Qin (hq2229), Yongyan Liu (yl6107), Yijun Wang (yw4664), Heng Hu (hh2648)" />
 
-<meta name="date" content="2025-11-22" />
+<meta name="date" content="2025-11-23" />
 
 <title>Project Report</title>
 
@@ -360,7 +360,7 @@ div.tocify {
 <h1 class="title toc-ignore">Project Report</h1>
 <h4 class="author">William M. Donovan (wd2328), Hantang Qin (hq2229),
 Yongyan Liu (yl6107), Yijun Wang (yw4664), Heng Hu (hh2648)</h4>
-<h4 class="date">November 22, 2025</h4>
+<h4 class="date">November 23, 2025</h4>
 
 </div>
 
@@ -452,8 +452,8 @@ isolate true disruptors.</li>
 map the “Blast Radius” of events and visualize spatial patterns.</li>
 </ul>
 </div>
-<div id="exploratory-analysis" class="section level2">
-<h2>Exploratory Analysis</h2>
+<div id="analysis" class="section level2">
+<h2>Analysis</h2>
 <p>Our initial exploration revealed strong temporal patterns.</p>
 <ul>
 <li><strong>Weekly Rhythm:</strong> The classic “two-humped” camel shape
@@ -468,47 +468,62 @@ Yorkers abandon the subway in July.</li>
 <div id="story-1-the-goldilocks-zone" class="section level3">
 <h3>Story 1: The Goldilocks Zone</h3>
 <p>Using a <strong>Generalized Additive Model (GAM)</strong>, we found
-that the relationship between temperature and ridership is
-<strong>non-linear</strong>. * <strong>The “Comfort Zone”:</strong>
-Ridership peaks between <strong>60°F and 75°F</strong>. * <strong>The
-“Cold Snap”:</strong> Ridership drops significantly as temperatures
-approach freezing (32°F). * <strong>The “Heat Resilience”:</strong>
-Surprisingly, heat waves (&gt;90°F) show a much smaller dip than cold
-snaps. New Yorkers will sweat, but they won’t freeze.</p>
+that the relationship between weather and ridership is
+<strong>non-linear</strong>, with temperature and precipitation
+interacting to shape commuter behavior.</p>
+<ul>
+<li><strong>The “Comfort Zone”:</strong> Ridership peaks between
+<strong>60°F and 75°F</strong> on dry days.</li>
+<li><strong>Rain Sensitivity:</strong> Precipitation has a stronger
+marginal effect than temperature—a half-inch of rain causes more
+ridership loss than a 20°F temperature swing.</li>
+<li><strong>The Worst Conditions:</strong> Cold + wet days see the
+steepest drops (20-35% below average), while hot dry days show only
+modest declines. New Yorkers will sweat, but they won’t freeze.</li>
+</ul>
 </div>
 <div id="story-2-the-event-blast-radius" class="section level3">
 <h3>Story 2: The Event Blast Radius</h3>
 <p>We mapped the station-level percent change in ridership during the
-<strong>NYC Marathon</strong> and <strong>Pride March</strong>. *
-<strong>Marathon:</strong> Created a linear “corridor of activity” along
-the Upper West Side and 1st Avenue. * <strong>Pride:</strong> Showed an
-intense, concentrated “hotspot” in the West Village, with some stations
-seeing surges of &gt;50% above baseline. * This confirms that “Citywide”
-events are often geographically specific phenomena.</p>
+<strong>NYC Marathon</strong> and <strong>Pride March</strong>.</p>
+<ul>
+<li><strong>Marathon:</strong> Created a linear “corridor of activity”
+along the Upper West Side and 1st Avenue.</li>
+<li><strong>Pride:</strong> Showed an intense, concentrated “hotspot” in
+the West Village, with some stations seeing surges of &gt;50% above
+baseline.</li>
+<li>This confirms that “Citywide” events are often geographically
+specific phenomena.</li>
+</ul>
 </div>
 <div id="story-3-station-personalities" class="section level3">
 <h3>Story 3: Station Personalities</h3>
 <p>We used <strong>K-Means Clustering</strong> on hourly ridership
-profiles to classify stations by commute flow direction. *
-<strong>Residential Stations:</strong> Sharp morning peaks as commuters
-leave their neighborhoods. * <strong>Commercial Stations:</strong>
-Evening peaks as workers leave offices to head home. *
-<strong>Geographic Pattern:</strong> Commercial stations cluster in
+profiles to classify stations by commute flow direction.</p>
+<ul>
+<li><strong>Residential Stations:</strong> Sharp morning peaks as
+commuters leave their neighborhoods.</li>
+<li><strong>Commercial Stations:</strong> Evening peaks as workers leave
+offices to head home.</li>
+<li><strong>Geographic Pattern:</strong> Commercial stations cluster in
 Midtown and the Financial District, while Residential stations dominate
 the Upper West Side and Upper East Side. Transit hubs like Penn Station
 and Times Square show Residential patterns despite their Midtown
-location.</p>
+location.</li>
+</ul>
 </div>
 <div id="story-4-rain-sensitivity-by-hour" class="section level3">
 <h3>Story 4: Rain Sensitivity by Hour</h3>
-<p>We analyzed how rain sensitivity varies throughout the day. *
-<strong>Morning Rush Most Sensitive:</strong> Ridership drops 20-30%
+<p>We analyzed how rain sensitivity varies throughout the day.</p>
+<ul>
+<li><strong>Morning Rush Most Sensitive:</strong> Ridership drops 20-30%
 during 7-9 AM on rainy days—commuters switch to alternatives due to
-strict arrival deadlines. * <strong>Evening More Resilient:</strong>
-Afternoon/evening shows smaller drops (5-18%) because travelers can wait
-for rain to stop. * <strong>MTA Implication:</strong> Service
-adjustments should focus on morning rush demand reductions on rainy
-days.</p>
+strict arrival deadlines.</li>
+<li><strong>Evening More Resilient:</strong> Afternoon/evening shows
+smaller drops (5-18%) because travelers can wait for rain to stop.</li>
+<li><strong>MTA Implication:</strong> Service adjustments should focus
+on morning rush demand reductions on rainy days.</li>
+</ul>
 </div>
 </div>
 <div id="discussion" class="section level2">
