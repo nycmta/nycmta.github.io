@@ -306,16 +306,9 @@ plot_data <- bind_rows(marathon_impact, pride_impact) %>%
   left_join(stations, by = "station_complex_id") %>%
   filter(!is.na(latitude))
 
-# Download NYC neighborhood tabulation areas for detailed boundaries
-# This provides much more detailed geography than borough outlines
-nta_url <- "https://data.cityofnewyork.us/api/geospatial/9nt8-h7nd?method=export&format=GeoJSON"
-nyc_nta <- tryCatch({
-  st_read(nta_url, quiet = TRUE)
-}, error = function(e) {
-  # Fallback to borough boundaries
-  borough_url <- "https://data.cityofnewyork.us/api/geospatial/tqmj-j8zm?method=export&format=GeoJSON"
-  st_read(borough_url, quiet = TRUE)
-})
+# Load NYC neighborhood tabulation areas for detailed boundaries
+# Data preloaded by data/download_nyc_geo.R
+nyc_nta <- st_read("data/geo/nyc_nta.geojson", quiet = TRUE)
 
 # Filter to Manhattan neighborhoods
 if ("borough" %in% names(nyc_nta)) {
@@ -388,13 +381,8 @@ stations <- station_day %>%
   )
 
 # Load NYC neighborhoods for map background
-nta_url <- "https://data.cityofnewyork.us/api/geospatial/9nt8-h7nd?method=export&format=GeoJSON"
-nyc_nta <- tryCatch({
-  st_read(nta_url, quiet = TRUE)
-}, error = function(e) {
-  borough_url <- "https://data.cityofnewyork.us/api/geospatial/tqmj-j8zm?method=export&format=GeoJSON"
-  st_read(borough_url, quiet = TRUE)
-})
+# Data preloaded by data/download_nyc_geo.R
+nyc_nta <- st_read("data/geo/nyc_nta.geojson", quiet = TRUE)
 
 if ("borough" %in% names(nyc_nta)) {
   manhattan_sf <- nyc_nta %>% filter(borough == "Manhattan")
@@ -451,31 +439,6 @@ cluster_labels <- centroids %>%
 station_clusters <- station_clusters %>%
   left_join(cluster_labels, by = "cluster")
 
-# 3. Rain Sensitivity Analysis - Hourly basis (for Story 4)
-# Get precipitation data from station_day
-daily_prcp <- station_day %>%
-  select(station_complex_id, date, prcp) %>%
-  distinct()
-
-# Calculate avg drop in ridership on rainy days (>0.5 in) for each station by hour
-rain_effect_hourly <- station_hour %>%
-  filter(hour >= 5) %>%
-  left_join(daily_prcp, by = c("station_complex_id", "date")) %>%
-  mutate(is_rainy = if_else(prcp >= 0.5, "Rain", "Dry")) %>%
-  group_by(station_complex_id, hour, is_rainy) %>%
-  summarize(avg_ridership = median(total_ridership, na.rm = TRUE), .groups = "drop") %>%
-  pivot_wider(names_from = is_rainy, values_from = avg_ridership) %>%
-  filter(!is.na(Rain) & !is.na(Dry)) %>%
-  mutate(rain_change_pct = (Rain - Dry) / Dry)
-
-# Aggregate by hour (all stations combined)
-rain_by_hour <- rain_effect_hourly %>%
-  group_by(hour) %>%
-  summarize(
-    median_change = median(rain_change_pct, na.rm = TRUE),
-    .groups = "drop"
-  )
-
 # Count stations by type
 station_counts <- station_clusters %>%
   count(label) %>%
@@ -490,16 +453,6 @@ p_profiles <- ggplot(centroids %>% left_join(cluster_labels, by = "cluster") %>%
     values = c("Residential" = "#E63946", "Commercial" = "#2E86AB")
   ) +
   labs(title = "Station Personality Profiles", x = "Hour of Day", y = "% of Daily Rides", color = "Station Type")
-
-p_rain <- ggplot(rain_by_hour, aes(x = hour, y = median_change)) +
-  geom_line(linewidth = 1.2, color = "#2E86AB") +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-  scale_y_continuous(labels = percent_format()) +
-  labs(
-    title = "Rain Sensitivity by Hour",
-    subtitle = "Negative values = fewer riders on rainy days",
-    x = "Hour of Day", y = "% Change on Rainy Days"
-  )
 
 p_profiles
 ```
@@ -563,6 +516,41 @@ The few red spots in Midtown are notable exceptions that prove the rule: **Penn 
 Beyond station types, we can examine how rain sensitivity varies throughout the day. This analysis reveals important patterns about when commuters are most likely to change their behavior in response to weather.
 
 ```{r story4_rain_hour}
+
+# Get precipitation data from station_day
+daily_prcp <- station_day %>%
+  select(station_complex_id, date, prcp) %>%
+  distinct()
+
+# Calculate avg drop in ridership on rainy days (>0.5 in) for each station by hour
+rain_effect_hourly <- station_hour %>%
+  filter(hour >= 5) %>%
+  left_join(daily_prcp, by = c("station_complex_id", "date")) %>%
+  mutate(is_rainy = if_else(prcp >= 0.5, "Rain", "Dry")) %>%
+  group_by(station_complex_id, hour, is_rainy) %>%
+  summarize(avg_ridership = median(total_ridership, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = is_rainy, values_from = avg_ridership) %>%
+  filter(!is.na(Rain) & !is.na(Dry)) %>%
+  mutate(rain_change_pct = (Rain - Dry) / Dry)
+
+# Aggregate by hour (all stations combined)
+rain_by_hour <- rain_effect_hourly %>%
+  group_by(hour) %>%
+  summarize(
+    median_change = median(rain_change_pct, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+p_rain <- ggplot(rain_by_hour, aes(x = hour, y = median_change)) +
+  geom_line(linewidth = 1.2, color = "#2E86AB") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Rain Sensitivity by Hour",
+    subtitle = "Negative values = fewer riders on rainy days",
+    x = "Hour of Day", y = "% Change on Rainy Days"
+  )
+
 p_rain
 ```
 

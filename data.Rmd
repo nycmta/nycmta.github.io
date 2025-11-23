@@ -299,13 +299,8 @@ manhattan_stations_ridership <- manhattan_stations |>
   filter(!is.na(total_ridership))
 
 # Load NYC neighborhoods for map background
-nta_url <- "https://data.cityofnewyork.us/api/geospatial/9nt8-h7nd?method=export&format=GeoJSON"
-nyc_nta <- tryCatch({
-  st_read(nta_url, quiet = TRUE)
-}, error = function(e) {
-  borough_url <- "https://data.cityofnewyork.us/api/geospatial/tqmj-j8zm?method=export&format=GeoJSON"
-  st_read(borough_url, quiet = TRUE)
-})
+# Data preloaded by data/download_nyc_geo.R
+nyc_nta <- st_read("data/geo/nyc_nta.geojson", quiet = TRUE)
 
 # Filter to Manhattan
 if ("borough" %in% names(nyc_nta)) {
