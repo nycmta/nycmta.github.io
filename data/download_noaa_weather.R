@@ -16,15 +16,13 @@ cat("Downloading NOAA GHCN-Daily weather data for Central Park Station...\n")
 cat("Station: GHCND:USW00094728\n")
 cat("Period: 2020-01-01 to 2025-11-05\n\n")
 
-# Function to download data for a given year
-download_year <- function(year, token) {
-  cat(sprintf("Downloading data for %d...\n", year))
-
+# Function to download data for a given date range
+download_period <- function(start_date, end_date, token) {
   params <- list(
     datasetid = "GHCND",
     stationid = "GHCND:USW00094728",
-    startdate = sprintf("%d-01-01", year),
-    enddate = sprintf("%d-12-31", year),
+    startdate = start_date,
+    enddate = end_date,
     datatypeid = "TMAX,PRCP,SNOW",
     units = "standard",
     limit = 1000
@@ -39,15 +37,38 @@ download_year <- function(year, token) {
   if (status_code(response) == 200) {
     data <- fromJSON(content(response, as = "text", encoding = "UTF-8"))
     if (!is.null(data$results)) {
-      cat(sprintf("  ✓ Downloaded %d records\n", nrow(data$results)))
       return(as_tibble(data$results))
-    } else {
-      cat("  ! No data returned\n")
-      return(NULL)
     }
+  }
+  return(NULL)
+}
+
+# Function to download data for a given year in two halves to avoid 1000 record limit
+download_year <- function(year, token) {
+  cat(sprintf("Downloading data for %d...\n", year))
+
+  # Download first half (Jan-Jun)
+  h1 <- download_period(
+    sprintf("%d-01-01", year),
+    sprintf("%d-06-30", year),
+    token
+  )
+  Sys.sleep(0.3)
+
+  # Download second half (Jul-Dec)
+  h2 <- download_period(
+    sprintf("%d-07-01", year),
+    sprintf("%d-12-31", year),
+    token
+  )
+
+  year_data <- bind_rows(h1, h2)
+
+  if (nrow(year_data) > 0) {
+    cat(sprintf("  ✓ Downloaded %d records\n", nrow(year_data)))
+    return(year_data)
   } else {
-    cat(sprintf("  ✗ Error: HTTP %d\n", status_code(response)))
-    cat(sprintf("  Message: %s\n", content(response, as = "text")))
+    cat("  ! No data returned\n")
     return(NULL)
   }
 }

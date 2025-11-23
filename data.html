@@ -455,13 +455,9 @@ page</a>. After receiving the token via email, we downloaded daily
 weather data for Central Park (located in Manhattan) covering 2020-2025.
 This provides consistent weather measurements applicable to all
 Manhattan stations.</p>
-<p><strong>Note</strong>: December 2024 data is currently unavailable
-from the NOAA API, creating a gap in the weather time series. All other
-months in the 2024-2025 study period have complete daily
-observations.</p>
 <pre class="r"><code>weather &lt;- read_csv(&#39;data/weather/central_park_weather_wide.csv&#39;, show_col_types = FALSE) |&gt;
   mutate(date = as.Date(date))</code></pre>
-<p>The dataset contains 1,642 daily observations with max temperature,
+<p>The dataset contains 2,151 daily observations with max temperature,
 precipitation, and snowfall.</p>
 <pre class="r"><code># Temperature and precipitation time series
 p_ts &lt;- weather |&gt;
@@ -692,7 +688,8 @@ stations_raw &lt;- readr::read_csv(path_stations, show_col_types = FALSE)
 rid &lt;- bind_rows(rid24, rid25) |&gt;
   clean_names() |&gt;
   mutate(
-    transit_timestamp = ymd_hms(transit_timestamp, quiet = TRUE),
+    # Handle both datetime and date-only formats
+    transit_timestamp = parse_date_time(transit_timestamp, orders = c(&quot;ymd HMS&quot;, &quot;ymd&quot;), quiet = TRUE),
     date = as_date(transit_timestamp),
     hour = hour(transit_timestamp)
   ) |&gt;
@@ -932,7 +929,7 @@ panel_station_hour &lt;- panel_station_hour |&gt;
 <div id="output-summary" class="section level2">
 <h2>Output Summary</h2>
 <pre class="r"><code>cat(&quot;Panel Station Day:&quot;, nrow(panel_station_day), &quot;rows\n&quot;)</code></pre>
-<pre><code>## Panel Station Day: 81025 rows</code></pre>
+<pre><code>## Panel Station Day: 80905 rows</code></pre>
 <pre class="r"><code>cat(&quot;Panel Station Hour:&quot;, nrow(panel_station_hour), &quot;rows\n&quot;)</code></pre>
 <pre><code>## Panel Station Hour: 1921163 rows</code></pre>
 <pre class="r"><code>cat(&quot;Stations:&quot;, n_distinct(panel_station_day$station_complex_id), &quot;\n&quot;)</code></pre>
@@ -942,9 +939,14 @@ panel_station_hour &lt;- panel_station_hour |&gt;
 <pre class="r"><code>cat(&quot;Heatwave days:&quot;, sum(panel_station_day$heatwave == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>
 <pre><code>## Heatwave days: 1108</code></pre>
 <pre class="r"><code>cat(&quot;Storm days:&quot;, sum(panel_station_day$storm == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>
-<pre><code>## Storm days: 2089</code></pre>
+<pre><code>## Storm days: 2090</code></pre>
 <pre class="r"><code>cat(&quot;Event-affected station-days:&quot;, sum(panel_station_day$event_day == 1, na.rm = TRUE), &quot;\n&quot;)</code></pre>
-<pre><code>## Event-affected station-days: 2472</code></pre>
+<pre><code>## Event-affected station-days: 2504</code></pre>
+<pre class="r"><code>if (params$write_outputs) {
+  write_parquet(panel_station_day, file.path(params$outputs_dir, &quot;panel_station_day_indexed.parquet&quot;))
+  write_parquet(panel_station_hour, file.path(params$outputs_dir, &quot;panel_station_hour_indexed.parquet&quot;))
+  cat(&quot;\nParquet files written to:&quot;, params$outputs_dir, &quot;\n&quot;)
+}</code></pre>
 <p>The final datasets (<code>panel_station_day</code> and
 <code>panel_station_hour</code>) are exported as Parquet files for
 efficient use in our analysis pipeline.</p>
@@ -958,7 +960,7 @@ subway ridership and its potential drivers:</p>
 <p><strong>Ridership:</strong> 1,921,163 hourly observations across 123
 Manhattan stations (January 2024–October 2025), totaling over 1255
 million rides.</p>
-<p><strong>Weather:</strong> 1,642 daily observations from Central Park
+<p><strong>Weather:</strong> 2,151 daily observations from Central Park
 (2020-2025), including 35 heat wave days (≥90°F) and 18 major storm
 events (≥1 inch precipitation) during our study period.</p>
 <p><strong>Events:</strong> 149,524 large permitted events covering

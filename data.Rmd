@@ -137,8 +137,6 @@ p_top | (p_daily / p_hourly)
 
 The NOAA API requires an authentication token, which we obtained from [NOAA's token request page](https://www.ncdc.noaa.gov/cdo-web/token). After receiving the token via email, we downloaded daily weather data for Central Park (located in Manhattan) covering 2020-2025. This provides consistent weather measurements applicable to all Manhattan stations.
 
-**Note**: December 2024 data is currently unavailable from the NOAA API, creating a gap in the weather time series. All other months in the 2024-2025 study period have complete daily observations.
-
 ```{r load_weather}
 weather <- read_csv('data/weather/central_park_weather_wide.csv', show_col_types = FALSE) |>
   mutate(date = as.Date(date))
@@ -373,7 +371,8 @@ stations_raw <- readr::read_csv(path_stations, show_col_types = FALSE)
 rid <- bind_rows(rid24, rid25) |>
   clean_names() |>
   mutate(
-    transit_timestamp = ymd_hms(transit_timestamp, quiet = TRUE),
+    # Handle both datetime and date-only formats
+    transit_timestamp = parse_date_time(transit_timestamp, orders = c("ymd HMS", "ymd"), quiet = TRUE),
     date = as_date(transit_timestamp),
     hour = hour(transit_timestamp)
   ) |>
@@ -623,6 +622,12 @@ cat("Date range:", as.character(min(panel_station_day$date, na.rm = TRUE)), "to"
 cat("Heatwave days:", sum(panel_station_day$heatwave == 1, na.rm = TRUE), "\n")
 cat("Storm days:", sum(panel_station_day$storm == 1, na.rm = TRUE), "\n")
 cat("Event-affected station-days:", sum(panel_station_day$event_day == 1, na.rm = TRUE), "\n")
+
+if (params$write_outputs) {
+  write_parquet(panel_station_day, file.path(params$outputs_dir, "panel_station_day_indexed.parquet"))
+  write_parquet(panel_station_hour, file.path(params$outputs_dir, "panel_station_hour_indexed.parquet"))
+  cat("\nParquet files written to:", params$outputs_dir, "\n")
+}
 ```
 
 The final datasets (`panel_station_day` and `panel_station_hour`) are exported as Parquet files for efficient use in our analysis pipeline.
