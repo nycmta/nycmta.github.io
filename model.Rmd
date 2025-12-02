@@ -242,6 +242,13 @@ The contour lines show that precipitation has a **stronger marginal effect** tha
 
 Major events transform New York's geography for a day, but how far does the impact extend? We analyzed two iconic 2024 events: the **NYC Marathon (Nov 3)** and the **Pride March (June 30)**. For each station, we compared event-day ridership against a baseline of typical Sundays (median of all non-holiday Sundays in surrounding months), then mapped the percent change geographically.
 
+<iframe 
+  src="https://blooodw.shinyapps.io/blast_radius_app/" 
+  width="100%" 
+  height="900px" 
+  frameborder="0">
+</iframe>
+
 ```{r story2_events, fig.height=8}
 library(sf)
 
