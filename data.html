@@ -456,6 +456,24 @@ p_top &lt;- ridership |&gt;
 
 p_top | (p_daily / p_hourly)</code></pre>
 <p><img src="images/data-plot_ridership-1.png" width="960" /></p>
+<p><strong>Key observations:</strong></p>
+<ul>
+<li><strong>Daily trends</strong> show consistent ridership with clear
+weekly periodicity—weekday peaks and weekend dips. The 7-day rolling
+average smooths out day-to-day variation, revealing a stable baseline of
+~2.5M daily rides with notable dips during holidays (Thanksgiving,
+Christmas/New Year).</li>
+<li><strong>Hourly patterns</strong> reveal the classic dual-peak
+commuter signature on weekdays (8-9 AM and 5-6 PM rush hours), while
+weekends show a single midday plateau reflecting leisure travel. Weekday
+ridership exceeds weekend by roughly 2x during peak hours.</li>
+<li><strong>Top stations</strong> are dominated by Midtown hubs (Penn
+Station, Times Square, Grand Central) that serve as major transit
+interchanges, followed by key employment centers and tourist
+destinations.</li>
+</ul>
+<p><strong>Download script:</strong> <a
+href="data/download_full_ridership_monthly.R"><code>download_full_ridership_monthly.R</code></a></p>
 <hr />
 </div>
 <div id="weather-data" class="section level2">
@@ -521,6 +539,23 @@ p_season &lt;- seasonal_weather |&gt;
 
 p_ts / p_season</code></pre>
 <p><img src="images/data-plot_weather-1.png" width="960" /></p>
+<p><strong>Key observations:</strong></p>
+<ul>
+<li><strong>Temperature</strong> follows expected seasonal patterns with
+summer highs reaching 90°F+ and winter lows near freezing. The daily
+variation is substantial (20-30°F swings common), creating natural
+experiments for studying temperature effects on ridership.</li>
+<li><strong>Precipitation</strong> is episodic rather than
+seasonal—significant rain events (≥1 inch) occur year-round but cluster
+in spring and fall. These storm days represent potential ridership
+disruptions.</li>
+<li><strong>Seasonal summary</strong> confirms summer has the most heat
+days (≥90°F) while storm days distribute across spring, summer, and
+fall. Winter shows fewer extreme events but presents its own challenges
+(snow, cold).</li>
+</ul>
+<p><strong>Download script:</strong> <a
+href="data/download_noaa_weather.R"><code>download_noaa_weather.R</code></a></p>
 <hr />
 </div>
 <div id="permitted-events" class="section level2">
@@ -593,6 +628,24 @@ p_event_types &lt;- events_analysis |&gt;
 
 p_events_time / p_event_types</code></pre>
 <p><img src="images/data-plot_events-1.png" width="960" /></p>
+<p><strong>Key observations:</strong></p>
+<ul>
+<li><strong>Monthly distribution</strong> reveals strong
+seasonality—event counts peak in summer and early fall (June-October)
+when outdoor activities flourish, then drop sharply in winter months.
+Manhattan consistently hosts the largest share of citywide events.</li>
+<li><strong>Event types</strong> in Manhattan are dominated by street
+events (street fairs, festivals) and block parties, followed by athletic
+events (marathons, races). Parades, while fewer in number, often
+represent the largest individual events (NYC Marathon, Pride March,
+etc.).</li>
+<li><strong>Borough comparison</strong> shows Manhattan’s event density
+far exceeds other boroughs, reflecting its role as NYC’s commercial and
+cultural center—important context for our station-level impact
+analysis.</li>
+</ul>
+<p><strong>Download script:</strong> <a
+href="data/download_historical_events_monthly.R"><code>download_historical_events_monthly.R</code></a></p>
 <hr />
 </div>
 <div id="station-locations" class="section level2">
@@ -667,12 +720,23 @@ ggplot() +
     legend.position = &quot;right&quot;
   )</code></pre>
 <p><img src="images/data-plot_stations-1.png" width="768" /></p>
-<p><strong>Download scripts:</strong> <a
-href="data/download_full_ridership_monthly.R"><code>download_full_ridership_monthly.R</code></a>,
-<a
-href="data/download_historical_events_monthly.R"><code>download_historical_events_monthly.R</code></a>,
-<a
-href="data/download_noaa_weather.R"><code>download_noaa_weather.R</code></a></p>
+<p><strong>Key observations:</strong></p>
+<ul>
+<li><strong>Spatial concentration</strong> is striking—the
+highest-ridership stations (bright yellow/orange) cluster in Midtown
+Manhattan (34th-59th Streets), forming a dense core of transit activity
+around Penn Station, Times Square, and Grand Central.</li>
+<li><strong>North-South gradient</strong> shows ridership declining as
+you move toward Upper Manhattan (Harlem, Washington Heights) and the
+Financial District edges, reflecting the concentration of employment and
+tourism in Midtown.</li>
+<li><strong>Station density</strong> varies considerably—Midtown has
+closely spaced stations serving office towers, while residential Upper
+Manhattan has wider spacing. This spatial structure influences how
+events and weather may differentially impact neighborhoods.</li>
+</ul>
+<p><em>Note: Station coordinates are extracted directly from the
+ridership data—no separate download script required.</em></p>
 <hr />
 </div>
 </div>
