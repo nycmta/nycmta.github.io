@@ -24,7 +24,7 @@ This project explores how **Extreme Weather** (from heat waves to nor'easters) a
 
 ## Project Screencast
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/jRjcoBgRWfI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://youtu.be/DoBK44OtoMs" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ---
 
