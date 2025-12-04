@@ -653,10 +653,11 @@ href="data/download_historical_events_monthly.R"><code>download_historical_event
 <p>Station coordinates are already embedded in the ridership data, so we
 extracted unique station complexes with coordinates directly from the
 ridership API rather than seeking a separate geospatial dataset.</p>
-<pre class="r"><code>stations &lt;- read_csv(&#39;data/stations/mta_station_complexes.csv&#39;, show_col_types = FALSE)
+<pre class="r"><code>stations &lt;- read_csv(&#39;data/stations/mta_station_complexes.csv&#39;, show_col_types = FALSE) |&gt;
+  distinct(station_complex_id, .keep_all = TRUE)
 manhattan_stations &lt;- stations |&gt;
   filter(borough == &quot;Manhattan&quot;, !is.na(latitude), !is.na(longitude))</code></pre>
-<p>We identified 476 unique station complexes across NYC, with 155 in
+<p>We identified 427 unique station complexes across NYC, with 123 in
 Manhattan covering the entire borough from Battery Park to Inwood.</p>
 <pre class="r"><code>library(sf)
 
@@ -1044,7 +1045,7 @@ events (≥1 inch precipitation) during our study period.</p>
 <p><strong>Events:</strong> 149,524 large permitted events covering
 2024-2025, with 53,977 in Manhattan. Events show strong seasonality
 (summer/fall peaks) and include major NYC happenings.</p>
-<p><strong>Stations:</strong> Complete geospatial coverage of 155
+<p><strong>Stations:</strong> Complete geospatial coverage of 123
 Manhattan subway stations, enabling spatial analysis of ridership
 patterns and proximity-based event impacts.</p>
 <p>All four datasets align temporally and spatially, providing

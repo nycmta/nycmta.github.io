@@ -317,7 +317,8 @@ p_events_time / p_event_types
 Station coordinates are already embedded in the ridership data, so we extracted unique station complexes with coordinates directly from the ridership API rather than seeking a separate geospatial dataset.
 
 ```{r load_stations}
-stations <- read_csv('data/stations/mta_station_complexes.csv', show_col_types = FALSE)
+stations <- read_csv('data/stations/mta_station_complexes.csv', show_col_types = FALSE) |>
+  distinct(station_complex_id, .keep_all = TRUE)
 manhattan_stations <- stations |>
   filter(borough == "Manhattan", !is.na(latitude), !is.na(longitude))
 ```
