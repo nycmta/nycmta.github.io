@@ -83,7 +83,7 @@ For the full 2024–2025 period (approximately 95 weeks), this expands to roughl
 
 Since our research questions focus on *total ridership* rather than fare type breakdowns, we utilized the Socrata API's server-side aggregation functionality. By applying `SUM()` with `$group` (listed below), we aggregated across all fare types and payment methods *prior to* data transfer.
 
-```{r, eval=FALSE}
+```
 # API aggregation code
 
 "$select" = "transit_timestamp, station_complex_id, station_complex,

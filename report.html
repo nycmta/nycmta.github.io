@@ -466,7 +466,7 @@ than fare type breakdowns, we utilized the Socrata API’s server-side
 aggregation functionality. By applying <code>SUM()</code> with
 <code>$group</code> (listed below), we aggregated across all fare types
 and payment methods <em>prior to</em> data transfer.</p>
-<pre class="r"><code># API aggregation code
+<pre><code># API aggregation code
 
 &quot;$select&quot; = &quot;transit_timestamp, station_complex_id, station_complex,
              borough, SUM(ridership) as total_ridership&quot;
