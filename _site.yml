@@ -12,6 +12,9 @@ navbar:
       href: data.html
     - text: "Report"
       href: report.html
+  right:
+    - icon: fa-github
+      href: https://github.com/nycmta/nycmta.github.io
 output:
   html_document:
     theme: cosmo

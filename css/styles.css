@@ -112,6 +112,11 @@ h3 {
   color: var(--primary-color) !important;
 }
 
+/* GitHub icon in navbar */
+.navbar-nav .fa-github {
+  font-size: 2rem !important;
+}
+
 /* --- Links --- */
 a {
   color: var(--primary-color);
