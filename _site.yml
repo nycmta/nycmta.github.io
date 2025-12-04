@@ -22,3 +22,6 @@ output:
       smooth_scroll: true
     code_folding: hide
     css: css/styles.css
+    includes:
+      in_header: _includes/header.html
+      after_body: _includes/footer.html

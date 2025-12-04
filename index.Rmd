@@ -42,10 +42,3 @@ All visualizations in this project use the [Okabe-Ito color palette](https://jfl
 *   **Yijun Wang** (yw4664)
 *   **Heng Hu** (hh2648)
 
----
-
-<div class="footer" style="text-align: center; margin-top: 40px; padding: 20px; border-top: 1px solid #eee; color: #666;">
-**P8105 Data Science I** | Fall 2025<br>
-Columbia University Mailman School of Public Health<br>
-Department of Biostatistics
-</div>

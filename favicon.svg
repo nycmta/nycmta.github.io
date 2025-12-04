@@ -1,23 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Columbia Blue background (top half) -->
-  <path d="M16 1 A15 15 0 0 1 31 16 L1 16 A15 15 0 0 1 16 1" fill="#B9D9EB"/>
+  <!-- Hexagon shape (flat-top orientation like R package stickers) -->
+  <defs>
+    <clipPath id="hexClip">
+      <polygon points="16,1 29,8.5 29,23.5 16,31 3,23.5 3,8.5"/>
+    </clipPath>
+  </defs>
 
-  <!-- MTA Blue background (bottom half) -->
-  <path d="M1 16 A15 15 0 0 0 16 31 A15 15 0 0 0 31 16 Z" fill="#0039A6"/>
+  <!-- Upper half - Columbia Blue -->
+  <rect x="0" y="0" width="32" height="16" fill="#B9D9EB" clip-path="url(#hexClip)"/>
 
-  <!-- White border -->
-  <circle cx="16" cy="16" r="15" fill="none" stroke="white" stroke-width="1"/>
+  <!-- Lower half - MTA Blue -->
+  <rect x="0" y="16" width="32" height="16" fill="#0039A6" clip-path="url(#hexClip)"/>
 
-  <!-- Simplified Columbia Crown (top) -->
+  <!-- Hexagon border -->
+  <polygon points="16,1 29,8.5 29,23.5 16,31 3,23.5 3,8.5" fill="none" stroke="#002366" stroke-width="1"/>
+
+  <!-- Inner hexagon border -->
+  <polygon points="16,3 27,9.5 27,22.5 16,29 5,22.5 5,9.5" fill="none" stroke="white" stroke-width="0.8"/>
+
+  <!-- Simplified Columbia Crown (top) - Columbia Blue color -->
   <g fill="#002B7F">
-    <!-- Crown base -->
-    <rect x="10" y="10" width="12" height="2" rx="0.5"/>
     <!-- Crown points -->
-    <polygon points="11,10 12.5,5 14,10"/>
-    <polygon points="14.5,10 16,4 17.5,10"/>
-    <polygon points="18,10 19.5,5 21,10"/>
+    <polygon points="11,11 12.5,6 14,11"/>
+    <polygon points="14.5,11 16,5 17.5,11"/>
+    <polygon points="18,11 19.5,6 21,11"/>
+    <!-- Crown base -->
+    <rect x="10" y="11" width="12" height="2" rx="0.5"/>
   </g>
 
   <!-- MTA text (bottom) -->
-  <text x="16" y="25" font-family="Helvetica, Arial, sans-serif" font-size="8" font-weight="bold" fill="white" text-anchor="middle">MTA</text>
+  <text x="16" y="23" font-family="Helvetica, Arial, sans-serif" font-size="7" font-weight="bold" fill="white" text-anchor="middle">MTA</text>
 </svg>
