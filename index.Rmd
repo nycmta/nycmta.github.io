@@ -28,6 +28,12 @@ This project explores how **Extreme Weather** (from heat waves to nor'easters) a
 
 ---
 
+## Accessibility
+
+All visualizations in this project use the [Okabe-Ito color palette](https://jfly.uni-koeln.de/color/) to ensure readability for colorblind viewers.
+
+---
+
 ## The Team
 
 *   **William M. Donovan** (wd2328)

@@ -409,7 +409,7 @@ p_temp &lt;- station_day_aug %&gt;%
   distinct(date, tmax, dow, day_ridership_system) %&gt;%
   ggplot(aes(x = tmax, y = day_ridership_system / 1e6)) +
   geom_point(alpha = 0.3, size = 1) +
-  geom_smooth(method = &quot;loess&quot;, span = 1, color = &quot;#E67E22&quot;, se = FALSE) +
+  geom_smooth(method = &quot;loess&quot;, span = 1, color = okabe_ito$orange, se = FALSE) +
   facet_grid(. ~ dow) +
   labs(title = &quot;Ridership vs Max Temp&quot;, x = &quot;Temp (°F)&quot;, y = &quot;Ridership (M)&quot;)
 
@@ -419,7 +419,7 @@ p_prcp &lt;- station_day_aug %&gt;%
   distinct(date, prcp, pct_change_system) %&gt;%
   ggplot(aes(x = prcp, y = pct_change_system)) +
   geom_point(alpha = 0.5) +
-  geom_smooth(method = &quot;loess&quot;, color = &quot;#2C7BE5&quot;, se = FALSE) +
+  geom_smooth(method = &quot;loess&quot;, color = okabe_ito$blue, se = FALSE) +
   scale_x_log10() +
   labs(title = &quot;Rain Impact&quot;, x = &quot;Rain (in, log)&quot;, y = &quot;Log % Change&quot;)
 
@@ -429,7 +429,7 @@ p_snow &lt;- station_day_aug %&gt;%
   distinct(date, snow, pct_change_system) %&gt;%
   ggplot(aes(x = snow, y = pct_change_system)) +
   geom_point(alpha = 0.5) +
-  geom_smooth(method = &quot;loess&quot;, color = &quot;#0FB9B1&quot;, se = FALSE) +
+  geom_smooth(method = &quot;loess&quot;, color = okabe_ito$green, se = FALSE) +
   scale_x_log10() +
   labs(title = &quot;Snow Impact&quot;, x = &quot;Snow (in, log)&quot;, y = NULL)
 
@@ -440,7 +440,7 @@ but human comfort is non-linear. We can explore this with a
 <strong>Generalized Additive Model (GAM)</strong>, which allows for
 non-linear relationships and controls for other factors.</p>
 <p>The plot below shows the predicted ridership based on temperature,
-holding other factors constant (dry day, Tuesday in May).</p>
+holding other factors constant.</p>
 <p><span class="math display">\[
 \begin{aligned}
 \text{Ridership} \sim &amp; \; s(\text{Temperature}) \\
@@ -647,7 +647,7 @@ ggplot() +
     alpha = 0.85, size = 3
   ) +
   scale_color_gradient2(
-    low = &quot;#2E86AB&quot;, mid = &quot;white&quot;, high = &quot;#E63946&quot;, midpoint = 0,
+    low = okabe_ito$blue, mid = &quot;white&quot;, high = okabe_ito$vermillion, midpoint = 0,
     limits = c(-0.5, 1.0),
     labels = percent_format(), name = &quot;Ridership Change\nvs. Baseline&quot;
   ) +
@@ -777,7 +777,7 @@ p_profiles &lt;- ggplot(centroids %&gt;% left_join(cluster_labels, by = &quot;cl
 ) +
   geom_line(linewidth = 1.2) +
   scale_color_manual(
-    values = c(&quot;Residential&quot; = &quot;#E63946&quot;, &quot;Commercial&quot; = &quot;#2E86AB&quot;)
+    values = c(&quot;Residential&quot; = okabe_ito$vermillion, &quot;Commercial&quot; = okabe_ito$blue)
   ) +
   labs(title = &quot;Station Personality Profiles&quot;, x = &quot;Hour of Day&quot;, y = &quot;% of Daily Rides&quot;, color = &quot;Station Type&quot;)
 
@@ -808,7 +808,7 @@ p_map &lt;- ggplot() +
     alpha = 0.8, size = 2.5
   ) +
   scale_color_manual(
-    values = c(&quot;Residential&quot; = &quot;#E63946&quot;, &quot;Commercial&quot; = &quot;#2E86AB&quot;),
+    values = c(&quot;Residential&quot; = okabe_ito$vermillion, &quot;Commercial&quot; = okabe_ito$blue),
     name = &quot;Station Type&quot;
   ) +
   coord_sf(
@@ -886,7 +886,7 @@ rain_by_hour &lt;- rain_effect_hourly %&gt;%
   )
 
 p_rain &lt;- ggplot(rain_by_hour, aes(x = hour, y = median_change)) +
-  geom_line(linewidth = 1.2, color = &quot;#2E86AB&quot;) +
+  geom_line(linewidth = 1.2, color = okabe_ito$blue) +
   geom_hline(yintercept = 0, linetype = &quot;dashed&quot;, color = &quot;gray50&quot;) +
   scale_y_continuous(labels = percent_format()) +
   labs(

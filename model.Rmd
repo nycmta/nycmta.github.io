@@ -24,6 +24,13 @@ suppressPackageStartupMessages({
   library(scales)
 })
 
+# Color palette: Okabe-Ito (colorblind-friendly)
+# https://jfly.uni-koeln.de/color/
+okabe_ito <- list(
+  orange = "#E69F00", sky_blue = "#56B4E9", green = "#009E73",
+  yellow = "#F0E442", blue = "#0072B2", vermillion = "#D55E00", pink = "#CC79A7"
+)
+
 theme_set(theme_minimal() +
   theme(
     plot.title = element_text(face = "bold", size = 14),
@@ -108,7 +115,7 @@ p_temp <- station_day_aug %>%
   distinct(date, tmax, dow, day_ridership_system) %>%
   ggplot(aes(x = tmax, y = day_ridership_system / 1e6)) +
   geom_point(alpha = 0.3, size = 1) +
-  geom_smooth(method = "loess", span = 1, color = "#E67E22", se = FALSE) +
+  geom_smooth(method = "loess", span = 1, color = okabe_ito$orange, se = FALSE) +
   facet_grid(. ~ dow) +
   labs(title = "Ridership vs Max Temp", x = "Temp (°F)", y = "Ridership (M)")
 
@@ -118,7 +125,7 @@ p_prcp <- station_day_aug %>%
   distinct(date, prcp, pct_change_system) %>%
   ggplot(aes(x = prcp, y = pct_change_system)) +
   geom_point(alpha = 0.5) +
-  geom_smooth(method = "loess", color = "#2C7BE5", se = FALSE) +
+  geom_smooth(method = "loess", color = okabe_ito$blue, se = FALSE) +
   scale_x_log10() +
   labs(title = "Rain Impact", x = "Rain (in, log)", y = "Log % Change")
 
@@ -128,7 +135,7 @@ p_snow <- station_day_aug %>%
   distinct(date, snow, pct_change_system) %>%
   ggplot(aes(x = snow, y = pct_change_system)) +
   geom_point(alpha = 0.5) +
-  geom_smooth(method = "loess", color = "#0FB9B1", se = FALSE) +
+  geom_smooth(method = "loess", color = okabe_ito$green, se = FALSE) +
   scale_x_log10() +
   labs(title = "Snow Impact", x = "Snow (in, log)", y = NULL)
 
@@ -137,7 +144,7 @@ p_temp / (p_prcp + p_snow)
 
 We often assume a linear relationship between weather and behavior, but human comfort is non-linear. We can explore this with a **Generalized Additive Model (GAM)**, which allows for non-linear relationships and controls for other factors.
 
-The plot below shows the predicted ridership based on temperature, holding other factors constant (dry day, Tuesday in May).
+The plot below shows the predicted ridership based on temperature, holding other factors constant.
 
 \[
 \begin{aligned}
@@ -331,7 +338,7 @@ ggplot() +
     alpha = 0.85, size = 3
   ) +
   scale_color_gradient2(
-    low = "#2E86AB", mid = "white", high = "#E63946", midpoint = 0,
+    low = okabe_ito$blue, mid = "white", high = okabe_ito$vermillion, midpoint = 0,
     limits = c(-0.5, 1.0),
     labels = percent_format(), name = "Ridership Change\nvs. Baseline"
   ) +
@@ -451,7 +458,7 @@ p_profiles <- ggplot(centroids %>% left_join(cluster_labels, by = "cluster") %>%
 ) +
   geom_line(linewidth = 1.2) +
   scale_color_manual(
-    values = c("Residential" = "#E63946", "Commercial" = "#2E86AB")
+    values = c("Residential" = okabe_ito$vermillion, "Commercial" = okabe_ito$blue)
   ) +
   labs(title = "Station Personality Profiles", x = "Hour of Day", y = "% of Daily Rides", color = "Station Type")
 
@@ -478,7 +485,7 @@ p_map <- ggplot() +
     alpha = 0.8, size = 2.5
   ) +
   scale_color_manual(
-    values = c("Residential" = "#E63946", "Commercial" = "#2E86AB"),
+    values = c("Residential" = okabe_ito$vermillion, "Commercial" = okabe_ito$blue),
     name = "Station Type"
   ) +
   coord_sf(
@@ -543,7 +550,7 @@ rain_by_hour <- rain_effect_hourly %>%
   )
 
 p_rain <- ggplot(rain_by_hour, aes(x = hour, y = median_change)) +
-  geom_line(linewidth = 1.2, color = "#2E86AB") +
+  geom_line(linewidth = 1.2, color = okabe_ito$blue) +
   geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
   scale_y_continuous(labels = percent_format()) +
   labs(

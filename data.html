@@ -401,16 +401,27 @@ making monthly downloads feasible within API limits while preserving the
 station-hour granularity needed for our weather and event analyses.</p>
 <p>This yielded 1,921,163 hourly observations across 123 Manhattan
 stations from 2024-01-01 to 2025-10-19.</p>
-<pre class="r"><code># Daily trend (2024 only)
-p_daily &lt;- ridership |&gt;
+<pre class="r"><code># Daily trend (2024 only) with 7-day rolling average
+daily_ridership &lt;- ridership |&gt;
   filter(year(date) == 2024) |&gt;
   group_by(date) |&gt;
   summarize(total = sum(total_ridership, na.rm = TRUE) / 1e6, .groups = &quot;drop&quot;) |&gt;
-  ggplot(aes(x = date, y = total)) +
-  geom_line(color = &quot;#2E86AB&quot;, linewidth = 0.8) +
+  arrange(date) |&gt;
+  mutate(
+    rolling_avg = slide_dbl(total, mean, .before = 3, .after = 3, .complete = TRUE)
+  )
+
+p_daily &lt;- daily_ridership |&gt;
+  ggplot(aes(x = date)) +
+  geom_line(aes(y = total), color = okabe_ito$blue, alpha = 0.3, linewidth = 0.4) +
+  geom_line(aes(y = rolling_avg), color = okabe_ito$blue, linewidth = 0.9) +
   scale_y_continuous(labels = comma) +
-  labs(title = &quot;Manhattan Subway Daily Ridership (2024)&quot;, x = NULL, y = &quot;Daily Ridership (M)&quot;) +
-  theme(plot.title = element_text(size = 11))
+  labs(
+    title = &quot;Manhattan Subway Daily Ridership (2024)&quot;,
+    subtitle = &quot;7-day rolling average (bold) with daily values (faded)&quot;,
+    x = NULL, y = &quot;Daily Ridership (M)&quot;
+  ) +
+  theme(plot.title = element_text(size = 11), plot.subtitle = element_text(size = 9))
 
 # Hourly pattern
 p_hourly &lt;- ridership |&gt;
@@ -419,7 +430,7 @@ p_hourly &lt;- ridership |&gt;
   summarize(avg = mean(total_ridership, na.rm = TRUE) / 1000, .groups = &quot;drop&quot;) |&gt;
   ggplot(aes(x = hour, y = avg, color = weekday_type)) +
   geom_line(linewidth = 1) +
-  scale_color_manual(values = c(&quot;Weekday&quot; = &quot;#2E86AB&quot;, &quot;Weekend&quot; = &quot;#E63946&quot;)) +
+  scale_color_manual(values = c(&quot;Weekday&quot; = okabe_ito$blue, &quot;Weekend&quot; = okabe_ito$vermillion)) +
   labs(title = &quot;Average Hourly Pattern&quot;, x = &quot;Hour&quot;, y = &quot;Avg Ridership (K)&quot;, color = NULL) +
   theme(legend.position = &quot;top&quot;, plot.title = element_text(size = 11))
 
@@ -438,7 +449,7 @@ p_top &lt;- ridership |&gt;
     station_short = factor(station_short, levels = station_short)
   ) |&gt;
   ggplot(aes(x = total, y = station_short)) +
-  geom_col(fill = &quot;#06A77D&quot;) +
+  geom_col(fill = okabe_ito$green) +
   scale_x_continuous(labels = comma) +
   labs(title = &quot;Top 30 Manhattan Stations&quot;, x = &quot;Total Ridership (M)&quot;, y = NULL) +
   theme(plot.title = element_text(size = 11), axis.text.y = element_text(size = 8))
@@ -466,8 +477,8 @@ p_ts &lt;- weather |&gt;
   pivot_longer(cols = -date, names_to = &quot;metric&quot;, values_to = &quot;value&quot;) |&gt;
   mutate(metric = ifelse(metric == &quot;TMAX&quot;, &quot;Max Temp (°F)&quot;, &quot;Precipitation (in)&quot;)) |&gt;
   ggplot(aes(x = date, y = value)) +
-  geom_line(data = \(x) filter(x, metric == &quot;Max Temp (°F)&quot;), color = &quot;#E63946&quot;, linewidth = 0.6) +
-  geom_col(data = \(x) filter(x, metric == &quot;Precipitation (in)&quot;), fill = &quot;#2E86AB&quot;, alpha = 0.7) +
+  geom_line(data = \(x) filter(x, metric == &quot;Max Temp (°F)&quot;), color = okabe_ito$vermillion, linewidth = 0.6) +
+  geom_col(data = \(x) filter(x, metric == &quot;Precipitation (in)&quot;), fill = okabe_ito$sky_blue, alpha = 0.7) +
   facet_wrap(~metric, ncol = 1, scales = &quot;free_y&quot;) +
   labs(title = &quot;Central Park Weather (2024-2025)&quot;, x = NULL, y = NULL)
 
@@ -500,11 +511,10 @@ seasonal_weather &lt;- weather_summary |&gt;
 p_season &lt;- seasonal_weather |&gt;
   ggplot(aes(x = season, y = value)) +
   geom_col(aes(fill = season)) +
-  scale_fill_manual(
-    values = c(
-      &quot;Winter&quot; = &quot;#457B9D&quot;, &quot;Spring&quot; = &quot;#06A77D&quot;, &quot;Summer&quot; = &quot;#E63946&quot;, &quot;Fall&quot; = &quot;#F77F00&quot;
-    )
-  ) +
+  scale_fill_manual(values = c(
+    &quot;Winter&quot; = okabe_ito$sky_blue, &quot;Spring&quot; = okabe_ito$green,
+    &quot;Summer&quot; = okabe_ito$orange, &quot;Fall&quot; = okabe_ito$pink
+  )) +
   facet_wrap(~metric, scales = &quot;free&quot;, ncol = 3) +
   labs(title = &quot;Seasonal Weather Summary&quot;, x = NULL, y = NULL) +
   theme(legend.position = &quot;none&quot;, axis.text.x = element_text(angle = 45, hjust = 1))
@@ -558,7 +568,11 @@ p_events_time &lt;- events_analysis |&gt;
   mutate(date = as.Date(paste0(year_month, &quot;-01&quot;))) |&gt;
   ggplot(aes(x = date, y = n, fill = borough)) +
   geom_col() +
-  scale_fill_brewer(palette = &quot;Set2&quot;) +
+  scale_fill_manual(values = c(
+    &quot;Manhattan&quot; = okabe_ito$orange, &quot;Brooklyn&quot; = okabe_ito$sky_blue,
+    &quot;Queens&quot; = okabe_ito$green, &quot;The Bronx&quot; = okabe_ito$vermillion,
+    &quot;Staten Island&quot; = okabe_ito$pink, &quot;Other&quot; = &quot;#999999&quot;
+  )) +
   scale_x_date(date_labels = &quot;%b %Y&quot;, date_breaks = &quot;3 months&quot;) +
   labs(title = &quot;Large NYC Events by Borough (2024-2025)&quot;,
        subtitle = &quot;Strong seasonal pattern: summer/fall peaks, winter lows&quot;,
