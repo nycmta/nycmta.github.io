@@ -151,7 +151,8 @@ p_top | (p_daily / p_hourly)
 
 **Key observations:**
 
-- **Daily trends** show consistent ridership with clear weekly periodicity—weekday peaks and weekend dips. The 7-day rolling average smooths out day-to-day variation, revealing a stable baseline of ~2.5M daily rides with notable dips during holidays (Thanksgiving, Christmas/New Year).
+- **Daily trends** show consistent ridership with clear weekly periodicity—weekday peaks and weekend dips. The 7-day rolling average smooths out day-to-day variation, revealing a stable baseline of ~2.5M daily rides.
+- **Holiday dips** are clearly visible, with ridership dropping sharply during July 4th, Thanksgiving, and Christmas/New Year periods—reflecting reduced commuter activity when offices close and residents leave the city.
 - **Hourly patterns** reveal the classic dual-peak commuter signature on weekdays (8-9 AM and 5-6 PM rush hours), while weekends show a single midday plateau reflecting leisure travel. Weekday ridership exceeds weekend by roughly 2x during peak hours.
 - **Top stations** are dominated by Midtown hubs (Penn Station, Times Square, Grand Central) that serve as major transit interchanges, followed by key employment centers and tourist destinations.
 
