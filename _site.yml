@@ -1,6 +1,6 @@
 name: "The Pulse of NYC: Weather, Events, and the Subway"
 output_dir: "."
-favicon: favicon.svg
+favicon: images/favicon.svg
 navbar:
   title: "NYC Subway & Weather"
   left:
