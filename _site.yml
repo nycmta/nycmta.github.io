@@ -20,4 +20,4 @@ output:
       collapsed: false
       smooth_scroll: true
     code_folding: hide
-    css: styles.css
+    css: css/styles.css

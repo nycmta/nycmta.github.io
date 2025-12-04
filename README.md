@@ -38,7 +38,8 @@ nycmta/
 ├── data.Rmd               # Data sources & wrangling pipeline
 ├── report.Rmd             # Full academic report
 ├── _site.yml              # Website configuration
-├── styles.css             # Custom CSS styling
+├── css/                   # Custom CSS styling
+│   └── styles.css
 ├── images/                # All figures and images
 ├── site_libs/             # R Markdown site libraries
 └── data/
