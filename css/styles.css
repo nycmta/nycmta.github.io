@@ -133,7 +133,7 @@ pre {
   border-radius: 6px;
   padding: 15px;
   font-family: 'Source Code Pro', monospace;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   color: #333;
   overflow-x: auto; /* Ensure horizontal scroll for long lines */
 }
@@ -151,6 +151,7 @@ code {
   padding: 2px 5px;
   border-radius: 4px;
   font-family: 'Source Code Pro', monospace;
+  font-size: 1.2rem;
 }
 
 /* --- Images & Figures --- */
