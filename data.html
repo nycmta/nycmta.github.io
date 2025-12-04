@@ -393,7 +393,7 @@ than fare type breakdowns, we leveraged the Socrata API’s server-side
 aggregation capabilities. Using <code>SUM()</code> with
 <code>$group</code>, we aggregated across all fare types and payment
 methods <em>before</em> data transfer.</p>
-<pre class="r"><code>&quot;$select&quot; = &quot;transit_timestamp, station_complex_id, station_complex,
+<pre><code>&quot;$select&quot; = &quot;transit_timestamp, station_complex_id, station_complex,
              borough, SUM(ridership) as total_ridership&quot;,
 &quot;$group&quot; = &quot;transit_timestamp, station_complex_id, station_complex, borough&quot;</code></pre>
 <p>This reduced records by <strong>96%</strong> (from 21.6M to 1.92M),

@@ -74,7 +74,7 @@ For our complete 2024-2025 dataset (22 months ≈ 95 weeks), this would generate
 
 Since our research questions focus on *total ridership* rather than fare type breakdowns, we leveraged the Socrata API's server-side aggregation capabilities. Using `SUM()` with `$group`, we aggregated across all fare types and payment methods *before* data transfer.
 
-```r
+```
 "$select" = "transit_timestamp, station_complex_id, station_complex,
              borough, SUM(ridership) as total_ridership",
 "$group" = "transit_timestamp, station_complex_id, station_complex, borough"
