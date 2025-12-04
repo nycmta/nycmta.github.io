@@ -24,7 +24,7 @@ body {
   font-size: 18px;
   line-height: 1.8;
   color: var(--text-color);
-  margin-top: 80px; /* Space for fixed navbar */
+  margin-top: 20px; /* Space for fixed navbar */
 }
 
 * {
