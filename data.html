@@ -1043,6 +1043,166 @@ efficient use in our analysis pipeline.</p>
 <hr />
 </div>
 </div>
+<div id="part-3-loading-the-prepared-dataset" class="section level1">
+<h1>Part 3: Loading the Prepared Dataset</h1>
+<p>For users who want to skip the data wrangling process and jump
+directly into analysis, we provide pre-built Parquet files in the
+<code>data/derived/</code> directory. These files contain the fully
+processed panel datasets ready for modeling and visualization.</p>
+<div id="quick-start" class="section level2">
+<h2>Quick Start</h2>
+<p>To load the prepared datasets, simply run:</p>
+<pre><code>library(arrow)
+
+# Load the station-day panel (recommended for most analyses)
+panel_day &lt;- read_parquet(&quot;data/derived/panel_station_day_indexed.parquet&quot;)
+
+# Load the station-hour panel (for hourly/intraday analyses)
+panel_hour &lt;- read_parquet(&quot;data/derived/panel_station_hour_indexed.parquet&quot;)</code></pre>
+</div>
+<div id="available-files" class="section level2">
+<h2>Available Files</h2>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="37%" />
+<col width="17%" />
+<col width="28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Description</th>
+<th>Rows</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>panel_station_day_indexed.parquet</code></td>
+<td>Station-day level ridership with weather, events, and baseline</td>
+<td>~85K</td>
+<td>Daily impact analysis, regression models</td>
+</tr>
+<tr class="even">
+<td><code>panel_station_hour_indexed.parquet</code></td>
+<td>Station-hour level ridership with event flags</td>
+<td>~2M</td>
+<td>Hourly patterns, intraday event effects</td>
+</tr>
+<tr class="odd">
+<td><code>station_lookup.csv</code></td>
+<td>Station metadata (names, coordinates)</td>
+<td>~120</td>
+<td>Reference table</td>
+</tr>
+<tr class="even">
+<td><code>station_summary.csv</code></td>
+<td>Aggregated station statistics</td>
+<td>~120</td>
+<td>Quick station comparisons</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="key-variables" class="section level2">
+<h2>Key Variables</h2>
+<p><strong>Station-Day Panel
+(<code>panel_station_day_indexed.parquet</code>):</strong></p>
+<p><em>Core identifiers:</em></p>
+<ul>
+<li><code>station_complex_id</code>: Unique station identifier</li>
+<li><code>station_complex</code>: Human-readable station name</li>
+<li><code>date</code>: Date of observation</li>
+</ul>
+<p><em>Ridership:</em></p>
+<ul>
+<li><code>entries_day</code>: Total daily ridership at station</li>
+<li><code>baseline_sd</code>: Median ridership for this
+station/day-of-week/month</li>
+<li><code>pct_change</code>: Log percent change from baseline</li>
+</ul>
+<p><em>Weather indicators:</em></p>
+<ul>
+<li><code>tmax</code>: Maximum temperature (°F)</li>
+<li><code>prcp</code>: Precipitation (inches)</li>
+<li><code>snow</code>: Snowfall (inches)</li>
+<li><code>heatwave</code>: Binary flag (1 = part of 3+ day heat spell
+≥90°F)</li>
+<li><code>storm</code>: Binary flag (1 = precipitation ≥1 inch)</li>
+</ul>
+<p><em>Event &amp; calendar:</em></p>
+<ul>
+<li><code>event_day</code>: Binary flag (1 = nearby event active)</li>
+<li><code>is_holiday</code>: “Yes”/“No” for federal holidays</li>
+<li><code>dow</code>: Day of week (Mon-Sun)</li>
+<li><code>month</code>: Month number (1-12)</li>
+</ul>
+<p><strong>Station-Hour Panel
+(<code>panel_station_hour_indexed.parquet</code>):</strong></p>
+<p><em>Core identifiers:</em></p>
+<ul>
+<li><code>station_complex_id</code>: Unique station identifier</li>
+<li><code>station_complex</code>: Human-readable station name</li>
+<li><code>date</code>: Date of observation</li>
+<li><code>hour</code>: Hour of day (0-23)</li>
+</ul>
+<p><em>Ridership:</em></p>
+<ul>
+<li><code>total_ridership</code>: Hourly ridership count</li>
+<li><code>baseline_sh</code>: Median ridership for this
+station/dow/month/hour</li>
+<li><code>hourly_pct_change</code>: Log percent change from
+baseline</li>
+</ul>
+<p><em>Event flag:</em></p>
+<ul>
+<li><code>event_hour</code>: Binary flag (1 = event active during this
+hour)</li>
+</ul>
+</div>
+<div id="example-usage" class="section level2">
+<h2>Example Usage</h2>
+<p><strong>Analyze heatwave impacts on ridership:</strong></p>
+<pre class="r"><code>panel_station_day |&gt;
+  filter(is_holiday == &quot;No&quot;) |&gt;  # Exclude holidays
+  group_by(heatwave) |&gt;
+  summarize(
+    n_obs = n(),
+    mean_ridership = mean(entries_day, na.rm = TRUE),
+    mean_pct_change = mean(pct_change, na.rm = TRUE)
+  )</code></pre>
+<p><strong>Compare event vs. non-event hours:</strong></p>
+<pre class="r"><code>panel_station_hour |&gt;
+  group_by(event_hour) |&gt;
+  summarize(
+    n_obs = n(),
+    mean_ridership = mean(total_ridership, na.rm = TRUE),
+    mean_pct_change = mean(hourly_pct_change, na.rm = TRUE)
+  )</code></pre>
+<p><strong>Filter to specific stations or date ranges:</strong></p>
+<pre class="r"><code># Times Square station during summer 2024
+panel_station_day |&gt;
+  filter(
+    str_detect(station_complex, &quot;Times Sq&quot;),
+    date &gt;= &quot;2024-06-01&quot;,
+    date &lt;= &quot;2024-08-31&quot;
+  )</code></pre>
+</div>
+<div id="performance-tips" class="section level2">
+<h2>Performance Tips</h2>
+<ul>
+<li><strong>Use Parquet</strong>: Parquet files load 5-10x faster than
+CSV and use less memory</li>
+<li><strong>Filter early</strong>: Apply <code>filter()</code> before
+<code>summarize()</code> to reduce computation</li>
+<li><strong>Choose the right granularity</strong>: Use station-day for
+most analyses; only load station-hour when hourly resolution is
+required</li>
+</ul>
+<hr />
+</div>
+</div>
 <div id="summary" class="section level1">
 <h1>Summary</h1>
 <p>Our integrated dataset provides comprehensive coverage of Manhattan

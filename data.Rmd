@@ -687,6 +687,128 @@ The final datasets (`panel_station_day` and `panel_station_hour`) are exported a
 
 ---
 
+# Part 3: Loading the Prepared Dataset
+
+For users who want to skip the data wrangling process and jump directly into analysis, we provide pre-built Parquet files in the `data/derived/` directory. These files contain the fully processed panel datasets ready for modeling and visualization.
+
+## Quick Start
+
+To load the prepared datasets, simply run:
+
+    library(arrow)
+
+    # Load the station-day panel (recommended for most analyses)
+    panel_day <- read_parquet("data/derived/panel_station_day_indexed.parquet")
+
+    # Load the station-hour panel (for hourly/intraday analyses)
+    panel_hour <- read_parquet("data/derived/panel_station_hour_indexed.parquet")
+
+## Available Files
+
+| File | Description | Rows | Use Case |
+|------|-------------|------|----------|
+| `panel_station_day_indexed.parquet` | Station-day level ridership with weather, events, and baseline | ~85K | Daily impact analysis, regression models |
+| `panel_station_hour_indexed.parquet` | Station-hour level ridership with event flags | ~2M | Hourly patterns, intraday event effects |
+| `station_lookup.csv` | Station metadata (names, coordinates) | ~120 | Reference table |
+| `station_summary.csv` | Aggregated station statistics | ~120 | Quick station comparisons |
+
+## Key Variables
+
+**Station-Day Panel (`panel_station_day_indexed.parquet`):**
+
+*Core identifiers:*
+
+- `station_complex_id`: Unique station identifier
+- `station_complex`: Human-readable station name
+- `date`: Date of observation
+
+*Ridership:*
+
+- `entries_day`: Total daily ridership at station
+- `baseline_sd`: Median ridership for this station/day-of-week/month
+- `pct_change`: Log percent change from baseline
+
+*Weather indicators:*
+
+- `tmax`: Maximum temperature (°F)
+- `prcp`: Precipitation (inches)
+- `snow`: Snowfall (inches)
+- `heatwave`: Binary flag (1 = part of 3+ day heat spell ≥90°F)
+- `storm`: Binary flag (1 = precipitation ≥1 inch)
+
+*Event & calendar:*
+
+- `event_day`: Binary flag (1 = nearby event active)
+- `is_holiday`: "Yes"/"No" for federal holidays
+- `dow`: Day of week (Mon-Sun)
+- `month`: Month number (1-12)
+
+**Station-Hour Panel (`panel_station_hour_indexed.parquet`):**
+
+*Core identifiers:*
+
+- `station_complex_id`: Unique station identifier
+- `station_complex`: Human-readable station name
+- `date`: Date of observation
+- `hour`: Hour of day (0-23)
+
+*Ridership:*
+
+- `total_ridership`: Hourly ridership count
+- `baseline_sh`: Median ridership for this station/dow/month/hour
+- `hourly_pct_change`: Log percent change from baseline
+
+*Event flag:*
+
+- `event_hour`: Binary flag (1 = event active during this hour)
+
+## Example Usage
+
+**Analyze heatwave impacts on ridership:**
+
+```{r example_heatwave, eval=FALSE}
+panel_station_day |>
+  filter(is_holiday == "No") |>  # Exclude holidays
+  group_by(heatwave) |>
+  summarize(
+    n_obs = n(),
+    mean_ridership = mean(entries_day, na.rm = TRUE),
+    mean_pct_change = mean(pct_change, na.rm = TRUE)
+  )
+```
+
+**Compare event vs. non-event hours:**
+
+```{r example_events, eval=FALSE}
+panel_station_hour |>
+  group_by(event_hour) |>
+  summarize(
+    n_obs = n(),
+    mean_ridership = mean(total_ridership, na.rm = TRUE),
+    mean_pct_change = mean(hourly_pct_change, na.rm = TRUE)
+  )
+```
+
+**Filter to specific stations or date ranges:**
+
+```{r example_filter, eval=FALSE}
+# Times Square station during summer 2024
+panel_station_day |>
+  filter(
+    str_detect(station_complex, "Times Sq"),
+    date >= "2024-06-01",
+    date <= "2024-08-31"
+  )
+```
+
+## Performance Tips
+
+- **Use Parquet**: Parquet files load 5-10x faster than CSV and use less memory
+- **Filter early**: Apply `filter()` before `summarize()` to reduce computation
+- **Choose the right granularity**: Use station-day for most analyses; only load station-hour when hourly resolution is required
+
+---
+
 # Summary
 
 ```{r summary_stats, include=FALSE}
